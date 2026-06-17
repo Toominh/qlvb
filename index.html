@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản Lý Văn Bản</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1e1e2e;--sidebar:#181825;--surface:#313244;--surface2:#45475a;
+  --accent:#89b4fa;--accent2:#b4d0fb;
+  --text:#cdd6f4;--muted:#a6adc8;--dim:#6c7086;
+  --border:#45475a;--danger:#f38ba8;--success:#a6e3a1;--warn:#fab387;
+  --hover:#262638;--selected:#2a2a4a;
+  --fs:18px;--fs-sm:15px;--fs-lg:21px;--fs-xl:26px;
+  --sw:300px;--hh:62px
+}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);font-size:var(--fs);
+  height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── HEADER ── */
+.hdr{height:var(--hh);background:var(--sidebar);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:10}
+.hdr-title{font-size:var(--fs-lg);font-weight:700;color:var(--accent);letter-spacing:.5px}
+.menu-btn{display:none;background:none;border:none;color:var(--text);font-size:26px;
+  cursor:pointer;padding:8px;border-radius:8px;line-height:1}
+.menu-btn:hover{background:var(--surface)}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99}
+.overlay.on{display:block}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sw);background:var(--sidebar);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sb-top{padding:12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.btn-add-folder{width:100%;padding:11px 16px;background:var(--accent);color:var(--bg);
+  border:none;border-radius:9px;font-size:var(--fs);font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+.btn-add-folder:hover{background:var(--accent2)}
+
+/* ── TREE ── */
+.tree{flex:1;overflow-y:auto;padding:6px 0}
+.tree::-webkit-scrollbar{width:5px}
+.tree::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.folder-wrap{margin:2px 6px}
+.folder-hdr{display:flex;align-items:center;padding:9px 10px;border-radius:9px;
+  cursor:pointer;gap:6px;min-height:48px}
+.folder-hdr:hover{background:var(--hover)}
+.ftoggle{font-size:12px;width:16px;text-align:center;color:var(--muted);flex-shrink:0}
+.ficon{font-size:19px;flex-shrink:0}
+.fname{flex:1;font-size:var(--fs);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fname-inp,.aname-inp{flex:1;background:var(--bg);border:1.5px solid var(--accent);
+  border-radius:5px;color:var(--text);padding:3px 8px;outline:none}
+.fname-inp{font-size:var(--fs)}
+.aname-inp{font-size:var(--fs-sm)}
+.acts{display:flex;gap:2px;flex-shrink:0;opacity:0;transition:.15s}
+.folder-hdr:hover .acts,.art-item:hover .acts{opacity:1}
+@media(hover:none){.acts{opacity:1}}
+.abt{background:none;border:none;color:var(--muted);cursor:pointer;padding:5px 7px;
+  border-radius:5px;font-size:16px;min-width:32px;min-height:32px;
+  display:flex;align-items:center;justify-content:center}
+.abt:hover{background:var(--surface);color:var(--text)}
+.abt.d:hover{background:rgba(243,139,168,.2);color:var(--danger)}
+.abt.a:hover{background:rgba(137,180,250,.2);color:var(--accent)}
+.folder-kids{padding-left:22px}
+.art-item{display:flex;align-items:center;padding:8px 10px;margin:1px 0;
+  border-radius:9px;cursor:pointer;gap:6px;min-height:44px}
+.art-item:hover{background:var(--hover)}
+.art-item.sel{background:var(--selected);border-left:3px solid var(--accent);padding-left:7px}
+.aicon{font-size:16px;flex-shrink:0;color:var(--muted)}
+.aname{flex:1;font-size:var(--fs-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty-hint{padding:8px 10px;font-size:13px;color:var(--dim);font-style:italic}
+
+/* ── SIDEBAR FOOTER ── */
+.sb-foot{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.btn-io{flex:1;padding:11px 6px;border:1.5px solid var(--border);background:var(--surface);
+  color:var(--text);border-radius:9px;font-size:var(--fs-sm);font-weight:600;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:.15s}
+.btn-io:hover{background:var(--surface2)}
+.btn-exp:hover{border-color:var(--success);color:var(--success)}
+.btn-imp:hover{border-color:var(--warn);color:var(--warn)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.placeholder{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:16px;color:var(--dim);padding:40px;text-align:center}
+.placeholder .ico{font-size:72px;opacity:.35}
+.placeholder .msg{font-size:var(--fs-lg)}
+
+/* ── EDITOR ── */
+.editor{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.ed-top{padding:14px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
+.art-title{flex:1;font-size:var(--fs-xl);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.save-status{font-size:13px;color:var(--dim);display:flex;align-items:center;
+  gap:5px;opacity:0;transition:opacity .3s;flex-shrink:0;white-space:nowrap}
+.save-status.on{opacity:1}
+.save-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0}
+.tabs{display:flex;gap:4px;background:var(--surface);padding:4px;border-radius:9px;flex-shrink:0}
+.tab{padding:9px 20px;background:none;border:none;color:var(--muted);
+  cursor:pointer;border-radius:7px;font-size:var(--fs-sm);font-weight:600;transition:.15s}
+.tab.on{background:var(--accent);color:var(--bg)}
+.tab:not(.on):hover{background:var(--surface2);color:var(--text)}
+.panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── TOOLBAR ── */
+.md-bar{padding:7px 12px;border-bottom:1px solid var(--border);
+  display:flex;gap:3px;flex-wrap:wrap;flex-shrink:0;align-items:center;
+  background:var(--sidebar)}
+.tbtn{padding:5px 10px;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);cursor:pointer;border-radius:6px;font-size:14px;font-weight:700;
+  min-height:34px;min-width:34px;display:flex;align-items:center;justify-content:center;
+  transition:.12s;user-select:none}
+.tbtn:hover{background:var(--surface2);border-color:var(--accent)}
+.tbtn.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.tsep{width:1px;background:var(--border);margin:1px 3px;height:22px;flex-shrink:0}
+.tsel{padding:5px 8px;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);cursor:pointer;border-radius:6px;font-size:13px;height:34px;
+  outline:none;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a6adc8'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 7px center;padding-right:22px}
+.tsel:hover{background-color:var(--surface2);border-color:var(--accent)}
+.tsel option{background:var(--sidebar)}
+.tlabel{font-size:12px;color:var(--dim);padding:0 3px;white-space:nowrap;user-select:none}
+/* Color picker */
+.color-wrap{position:relative;display:flex}
+.color-swatches{position:absolute;top:calc(100% + 6px);left:0;z-index:200;
+  background:var(--sidebar);border:1px solid var(--border);border-radius:10px;
+  padding:10px;display:none;grid-template-columns:repeat(4,1fr);gap:7px;width:164px;
+  box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.color-swatches.on{display:grid}
+.cswatch{width:32px;height:32px;border-radius:7px;cursor:pointer;
+  border:2px solid transparent;transition:.15s}
+.cswatch:hover{transform:scale(1.15);border-color:var(--text)}
+
+/* ── WYSIWYG EDITOR AREA ── */
+.editor-area{
+  flex:1;overflow-y:auto;padding:32px 40px;outline:none;
+  font-size:var(--fs);line-height:1.85;color:var(--text);
+  background:var(--bg);cursor:text;
+  caret-color:var(--accent)}
+.editor-area:empty::before{content:attr(data-placeholder);color:var(--dim);
+  pointer-events:none;font-style:italic}
+.editor-area::-webkit-scrollbar{width:6px}
+.editor-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+/* Content styles inside editor */
+.editor-area h1,.preview-out h1{font-size:2em;margin:.4em 0 .3em;color:var(--accent);font-weight:800}
+.editor-area h2,.preview-out h2{font-size:1.6em;margin:.7em 0 .3em;color:var(--accent);
+  border-bottom:1px solid var(--border);padding-bottom:4px;font-weight:700}
+.editor-area h3,.preview-out h3{font-size:1.3em;margin:.6em 0 .2em;color:var(--text);font-weight:700}
+.editor-area p,.preview-out p{margin:1.2em 0}
+.editor-area strong,.preview-out strong{color:var(--warn);font-weight:700}
+.editor-area em,.preview-out em{color:var(--muted);font-style:italic}
+.editor-area u,.preview-out u{text-decoration:underline}
+.editor-area ul,.editor-area ol,.preview-out ul,.preview-out ol{padding-left:28px;margin:.4em 0}
+.editor-area li,.preview-out li{margin:.2em 0}
+.editor-area blockquote,.preview-out blockquote{border-left:3px solid var(--accent);
+  padding-left:16px;margin:.5em 0;color:var(--muted);font-style:italic}
+.editor-area hr,.preview-out hr{border:none;border-top:1px solid var(--border);margin:1em 0}
+.editor-area code,.preview-out code{background:var(--surface);padding:2px 7px;
+  border-radius:4px;font-size:.88em;color:var(--success);font-family:monospace}
+.editor-area pre,.preview-out pre{background:var(--surface);padding:16px;border-radius:9px;
+  overflow-x:auto;margin:.5em 0}
+.editor-area pre code,.preview-out pre code{background:none;padding:0}
+.editor-area a,.preview-out a{color:var(--accent);text-decoration:underline}
+.editor-area img,.preview-out img{max-width:100%;height:auto;border-radius:8px;display:block;margin:.5em 0}
+.editor-area table,.preview-out table{border-collapse:collapse;width:100%;margin:.5em 0}
+.editor-area th,.preview-out th,.editor-area td,.preview-out td{
+  border:1px solid var(--border);padding:9px 14px;text-align:left}
+.editor-area th,.preview-out th{background:var(--surface);color:var(--accent);font-weight:700}
+/* Selection highlight in dark mode */
+.editor-area ::selection{background:rgba(137,180,250,.3)}
+
+/* ── PREVIEW (read-only) ── */
+.preview-out{flex:1;overflow-y:auto;padding:32px 40px;line-height:1.85;font-size:var(--fs)}
+.preview-out::-webkit-scrollbar{width:6px}
+.preview-out::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── WORD COUNT BAR ── */
+.wc-bar{padding:8px 20px;border-bottom:1px solid var(--border);
+  display:flex;gap:20px;flex-shrink:0;flex-wrap:wrap;background:var(--sidebar)}
+.wc-item{display:flex;align-items:center;gap:6px;font-size:var(--fs-sm);color:var(--muted)}
+.wc-num{font-size:var(--fs-lg);font-weight:700;color:var(--accent);line-height:1}
+
+/* ── TABLE MODAL ── */
+.tbl-modal{background:var(--sidebar);border:1px solid var(--border);border-radius:14px;
+  padding:28px;max-width:320px;width:90%}
+.tbl-modal h3{font-size:var(--fs-lg);margin-bottom:18px;text-align:center}
+.tbl-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.tbl-row label{font-size:var(--fs-sm);color:var(--muted);width:60px;flex-shrink:0}
+.tbl-inp{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;
+  color:var(--text);font-size:var(--fs-lg);font-weight:700;padding:8px 12px;
+  outline:none;text-align:center}
+.tbl-inp:focus{border-color:var(--accent)}
+.tbl-preview{text-align:center;font-size:12px;color:var(--dim);margin-bottom:20px;
+  font-family:monospace;background:var(--surface);padding:8px;border-radius:6px;line-height:1.6}
+.tbl-btns{display:flex;gap:10px}
+.btn-ins-tbl{flex:1;padding:11px;background:var(--accent);color:var(--bg);
+  border:none;border-radius:9px;font-size:var(--fs);font-weight:700;cursor:pointer}
+.btn-ins-tbl:hover{background:var(--accent2)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:20px;background:var(--surface2);
+  color:var(--text);padding:13px 20px;border-radius:10px;font-size:var(--fs-sm);
+  border-left:4px solid var(--accent);z-index:999;pointer-events:none;
+  transform:translateY(16px);opacity:0;transition:.25s;max-width:290px}
+.toast.on{transform:translateY(0);opacity:1}
+
+/* ── CONFIRM MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+  z-index:200;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--sidebar);border:1px solid var(--border);border-radius:14px;
+  padding:32px 28px;max-width:360px;width:90%;text-align:center}
+.modal h3{font-size:var(--fs-lg);margin-bottom:14px}
+.modal p{color:var(--muted);margin-bottom:28px;font-size:var(--fs);line-height:1.65;white-space:pre-wrap}
+.modal-btns{display:flex;gap:12px;justify-content:center}
+.btn-cancel{padding:11px 26px;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);border-radius:9px;font-size:var(--fs);cursor:pointer}
+.btn-del{padding:11px 26px;background:var(--danger);border:none;
+  color:#fff;border-radius:9px;font-size:var(--fs);font-weight:700;cursor:pointer}
+
+.btn-pdf:hover{border-color:var(--danger);color:var(--danger)}
+
+/* ── PRINT / PDF ── giữ đúng theme tối, không ép nền trắng chữ đen ── */
+@media print{
+  @page{margin:20mm 18mm}
+  html,body{background:var(--bg)!important;color:var(--text)!important;
+    font-size:13pt;overflow:visible!important;height:auto!important;
+    -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  .hdr,.sidebar,.overlay,.md-bar,.tabs,.ed-top,.wc-bar,
+  #ph,#tblMenu,#tblModal,#linkModal,#modal,.toast,
+  .sb-foot,.sb-top{display:none!important}
+  .layout{display:block!important;background:var(--bg)!important}
+  .main,.editor,.panel,.editor-area{
+    display:block!important;overflow:visible!important;
+    height:auto!important;max-height:none!important;width:100%!important;
+    background:var(--bg)!important}
+  .editor-area{
+    padding:0!important;font-size:13pt;line-height:1.8;
+    -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  /* Không ép màu chữ/nền riêng cho h1, h2, strong, code, bảng, link...
+     để PDF giữ nguyên đúng màu theme tối như trên trình soạn thảo */
+  .editor-area h1{font-size:22pt;margin-bottom:8pt}
+  .editor-area h2{font-size:17pt;padding-bottom:3pt;margin-bottom:6pt}
+  .editor-area h3{font-size:14pt}
+  .editor-area pre{padding:10pt;border-radius:4pt}
+  .editor-area th,.editor-area td{padding:6pt 9pt}
+  .editor-area img{max-width:100%!important;border-radius:4pt}
+  /* Print title above content */
+  .print-title{display:block!important}
+}
+.print-title{display:none;font-size:20pt;font-weight:800;color:var(--accent);
+  margin-bottom:14pt;padding-bottom:8pt;border-bottom:2px solid var(--border)}
+@media(max-width:768px){
+  .sidebar{position:fixed;top:var(--hh);left:0;bottom:0;z-index:100;
+    transform:translateX(-102%);transition:transform .3s ease;width:min(var(--sw),92vw)}
+  .sidebar.on{transform:translateX(0)}
+  .menu-btn{display:flex!important}
+  .editor-area,.preview-out{padding:16px 18px}
+  .ed-top{padding:10px 14px}
+  .art-title{font-size:var(--fs-lg)}
+  .tab{padding:8px 14px}
+  .md-bar{gap:3px;padding:6px 8px}
+  .tbtn{min-height:32px;min-width:32px;padding:4px 7px;font-size:13px}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <button class="menu-btn" id="menuBtn" onclick="toggleSB()">☰</button>
+  <div class="hdr-title">📋 Quản Lý Văn Bản</div>
+</header>
+
+<div class="layout">
+  <div class="overlay" id="overlay" onclick="closeSB()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-top">
+      <button class="btn-add-folder" onclick="startMkFolder()">📁 + Thêm Thư Mục</button>
+    </div>
+    <div class="tree" id="tree"></div>
+    <div class="sb-foot">
+      <button class="btn-io btn-exp" onclick="doExport()">⬇ Xuất JSON</button>
+      <button class="btn-io btn-imp" onclick="trigImp()">⬆ Nhập JSON</button>
+      <button class="btn-io btn-pdf" onclick="exportPDF()" title="Xuất bài viết ra PDF">📄 PDF</button>
+      <input type="file" id="impInput" accept=".json" style="display:none" onchange="doImport(event)">
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="placeholder" id="ph">
+      <div class="ico">📄</div>
+      <div class="msg">Chọn bài viết để đọc và soạn thảo</div>
+      <div style="font-size:var(--fs-sm);color:var(--dim)">Tạo thư mục mới từ menu bên trái</div>
+    </div>
+
+    <div class="editor" id="ed" style="display:none">
+      <div class="ed-top">
+        <div class="art-title" id="artTitle"></div>
+        <div class="save-status" id="saveStatus"><span class="save-dot"></span>Đã lưu tự động</div>
+        <div class="tabs">
+          <button class="tab on" id="tEdit" onclick="swTab('edit')">✏️ Soạn thảo</button>
+          <button class="tab"    id="tPrev" onclick="swTab('prev')">👁 Xem trước</button>
+        </div>
+      </div>
+
+      <!-- EDIT PANEL -->
+      <div class="panel" id="pEdit">
+        <div class="md-bar" id="toolbar">
+          <!-- Undo/Redo -->
+          <button class="tbtn" title="Hoàn tác (Ctrl+Z)"   onmousedown="event.preventDefault()" onclick="cmd('undo')">↩</button>
+          <button class="tbtn" title="Làm lại (Ctrl+Y)"    onmousedown="event.preventDefault()" onclick="cmd('redo')">↪</button>
+          <div class="tsep"></div>
+          <!-- Text format -->
+          <button class="tbtn" id="btn-bold"      title="Đậm (Ctrl+B)"       onmousedown="event.preventDefault()" onclick="cmd('bold')"><b>B</b></button>
+          <button class="tbtn" id="btn-italic"    title="Nghiêng (Ctrl+I)"   onmousedown="event.preventDefault()" onclick="cmd('italic')"><i>I</i></button>
+          <button class="tbtn" id="btn-underline" title="Gạch chân (Ctrl+U)" onmousedown="event.preventDefault()" onclick="cmd('underline')">U̲</button>
+          <button class="tbtn" id="btn-strikethrough" title="Gạch ngang"     onmousedown="event.preventDefault()" onclick="cmd('strikeThrough')"><s>S</s></button>
+          <div class="tsep"></div>
+          <!-- Headings -->
+          <button class="tbtn" id="btn-h1" title="Tiêu đề 1" onmousedown="event.preventDefault()" onclick="fmtBlock('h1')">H1</button>
+          <button class="tbtn" id="btn-h2" title="Tiêu đề 2" onmousedown="event.preventDefault()" onclick="fmtBlock('h2')">H2</button>
+          <button class="tbtn" id="btn-h3" title="Tiêu đề 3" onmousedown="event.preventDefault()" onclick="fmtBlock('h3')">H3</button>
+          <button class="tbtn" id="btn-p"  title="Đoạn văn"  onmousedown="event.preventDefault()" onclick="fmtBlock('p')"  style="font-size:12px">¶</button>
+          <div class="tsep"></div>
+          <!-- Lists -->
+          <button class="tbtn" id="btn-ul" title="Danh sách"     onmousedown="event.preventDefault()" onclick="cmd('insertUnorderedList')">• —</button>
+          <button class="tbtn" id="btn-ol" title="Danh sách số"  onmousedown="event.preventDefault()" onclick="cmd('insertOrderedList')">1.</button>
+          <div class="tsep"></div>
+          <!-- Block -->
+          <button class="tbtn" title="Trích dẫn"  onmousedown="event.preventDefault()" onclick="fmtBlock('blockquote')">❝</button>
+          <button class="tbtn" title="Code block" onmousedown="event.preventDefault()" onclick="fmtBlock('pre')">⌥</button>
+          <button class="tbtn" title="Căn trái"   onmousedown="event.preventDefault()" onclick="cmd('justifyLeft')"   style="font-size:12px">≡←</button>
+          <button class="tbtn" title="Căn giữa"   onmousedown="event.preventDefault()" onclick="cmd('justifyCenter')" style="font-size:12px">≡</button>
+          <button class="tbtn" title="Căn phải"   onmousedown="event.preventDefault()" onclick="cmd('justifyRight')"  style="font-size:12px">≡→</button>
+          <div class="tsep"></div>
+          <button class="tbtn" title="Thụt lề vào (Tab)"  onmousedown="event.preventDefault()" onclick="cmd('indent')"  style="font-size:15px">⇥</button>
+          <button class="tbtn" title="Thụt lề ra (Shift+Tab)" onmousedown="event.preventDefault()" onclick="cmd('outdent')" style="font-size:15px">⇤</button>
+          <div class="tsep"></div>
+          <!-- Table -->
+          <button class="tbtn" title="Chèn bảng" onmousedown="event.preventDefault()" onclick="openTableModal()">⊞ Bảng</button>
+          <button class="tbtn" title="Chèn / Sửa liên kết" onmousedown="event.preventDefault()" onclick="openLinkModal()">🔗 Link</button>
+          <button class="tbtn" title="Xoá liên kết" onmousedown="event.preventDefault()" onclick="removeLink()">✂ Link</button>
+          <div class="tsep"></div>
+          <!-- Color -->
+          <div class="color-wrap">
+            <button class="tbtn" id="btnColor" title="Màu chữ" onmousedown="event.preventDefault()" onclick="toggleColorPicker(event)">
+              <span style="display:flex;flex-direction:column;align-items:center;gap:2px">
+                <span style="font-weight:700;font-size:15px">A</span>
+                <span id="colorBar" style="width:16px;height:4px;border-radius:2px;background:#ff7eb6"></span>
+              </span>
+            </button>
+            <div class="color-swatches" id="colorSwatches">
+              <div class="cswatch" style="background:#cdd6f4;border:1.5px solid #89b4fa" title="Màu chữ mặc định" onclick="applyColor('#cdd6f4')"></div>
+              <div class="cswatch" style="background:#f5f0e8;border:1.5px solid #45475a" title="Trắng ngà"     onclick="applyColor('#f5f0e8')"></div>
+              <div class="cswatch" style="background:#ff9f43" title="Cam ấm"       onclick="applyColor('#ff9f43')"></div>
+              <div class="cswatch" style="background:#ffd32a" title="Vàng sáng"    onclick="applyColor('#ffd32a')"></div>
+              <div class="cswatch" style="background:#a6e3a1" title="Xanh lá mint" onclick="applyColor('#a6e3a1')"></div>
+              <div class="cswatch" style="background:#89dceb" title="Xanh da trời" onclick="applyColor('#89dceb')"></div>
+              <div class="cswatch" style="background:#89b4fa" title="Xanh dương"   onclick="applyColor('#89b4fa')"></div>
+              <div class="cswatch" style="background:#cba6f7" title="Tím lavender" onclick="applyColor('#cba6f7')"></div>
+              <div class="cswatch" style="background:#ff7eb6" title="Hồng neon"    onclick="applyColor('#ff7eb6')"></div>
+            </div>
+          </div>
+          <div class="tsep"></div>
+          <!-- Font size -->
+          <span class="tlabel">Cỡ:</span>
+          <select class="tsel" id="selFontSize" title="Cỡ chữ"
+            onmousedown="saveRangeForSelect()"
+            onchange="applyFontSize(this.value);this.value=''">
+            <option value="">Cỡ chữ</option>
+            <option value="12px">12px</option>
+            <option value="14px">14px</option>
+            <option value="16px">16px</option>
+            <option value="18px">18px</option>
+            <option value="20px">20px</option>
+            <option value="24px">24px</option>
+            <option value="28px">28px</option>
+            <option value="36px">36px</option>
+            <option value="48px">48px</option>
+          </select>
+          <div class="tsep"></div>
+          <!-- Font family -->
+          <span class="tlabel">Font:</span>
+          <select class="tsel" id="selFont" title="Kiểu chữ"
+            onmousedown="saveRangeForSelect()"
+            onchange="applyFont(this.value);this.value=''">
+            <option value="">Kiểu chữ</option>
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="'Times New Roman', serif">Times New Roman</option>
+            <option value="Verdana, sans-serif">Verdana</option>
+            <option value="Tahoma, sans-serif">Tahoma</option>
+            <option value="'Courier New', monospace">Courier New</option>
+          </select>
+          <div class="tsep"></div>
+          <!-- Line spacing -->
+          <span class="tlabel">Giãn dòng:</span>
+          <select class="tsel" id="selLineHeight" title="Giãn dòng"
+            onmousedown="saveRangeForSelect()"
+            onchange="applyLineSpacing(this.value);this.value=''">
+            <option value="">Giãn dòng</option>
+            <option value="normal">Mặc định</option>
+            <option value="1">1.0</option>
+            <option value="1.15">1.15</option>
+            <option value="1.5">1.5</option>
+            <option value="1.8">1.8</option>
+            <option value="2">2.0</option>
+            <option value="2.5">2.5</option>
+          </select>
+          <!-- Paragraph spacing -->
+          <span class="tlabel">Giãn đoạn:</span>
+          <select class="tsel" id="selParaSpacing" title="Giãn đoạn văn"
+            onmousedown="saveRangeForSelect()"
+            onchange="applyParaSpacing(this.value);this.value=''">
+            <option value="">Giãn đoạn</option>
+            <option value="normal">Mặc định</option>
+            <option value="0.4em">Nhỏ</option>
+            <option value="0.8em">Vừa</option>
+            <option value="1.2em">Lớn</option>
+            <option value="1.6em">Rất lớn</option>
+            <option value="2.4em">Cực lớn</option>
+          </select>
+        </div>
+
+        <!-- WYSIWYG contenteditable -->
+        <div id="printTitleBar" class="print-title"></div>
+        <div class="editor-area" id="ta" contenteditable="true"
+          data-placeholder="Bắt đầu gõ nội dung bài viết tại đây..."></div>
+      </div>
+
+      <!-- PREVIEW PANEL -->
+      <div class="panel" id="pPrev" style="display:none">
+        <div class="wc-bar" id="wcBar"></div>
+        <div class="preview-out" id="prevOut"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Confirm modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3>⚠️ Xác nhận xoá</h3>
+    <p id="modalMsg"></p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Huỷ bỏ</button>
+      <button class="btn-del" id="modalOk">Xoá</button>
+    </div>
+  </div>
+</div>
+
+<!-- Link modal -->
+<div class="modal-bg" id="linkModal">
+  <div class="tbl-modal" style="max-width:380px">
+    <h3>🔗 Chèn liên kết</h3>
+    <div class="tbl-row">
+      <label style="width:70px">Văn bản</label>
+      <input class="tbl-inp" id="linkText" placeholder="Tên hiển thị..." style="font-size:var(--fs);font-weight:400;text-align:left">
+    </div>
+    <div class="tbl-row">
+      <label style="width:70px">URL</label>
+      <input class="tbl-inp" id="linkUrl" placeholder="https://..." style="font-size:var(--fs);font-weight:400;text-align:left" type="url">
+    </div>
+    <div class="tbl-btns">
+      <button class="btn-cancel" onclick="closeLinkModal()">Huỷ</button>
+      <button class="btn-ins-tbl" onclick="insertLink()">🔗 Chèn</button>
+    </div>
+  </div>
+</div>
+
+<!-- Table modal -->
+<div class="modal-bg" id="tblModal">
+  <div class="tbl-modal">
+    <h3>⊞ Chèn bảng</h3>
+    <div class="tbl-row">
+      <label>Số hàng</label>
+      <input class="tbl-inp" id="tblRows" type="number" min="1" max="20" value="3" oninput="updateTblPreview()">
+    </div>
+    <div class="tbl-row">
+      <label>Số cột</label>
+      <input class="tbl-inp" id="tblCols" type="number" min="1" max="10" value="3" oninput="updateTblPreview()">
+    </div>
+    <div class="tbl-preview" id="tblPreview"></div>
+    <div class="tbl-btns">
+      <button class="btn-cancel" onclick="closeTblModal()">Huỷ</button>
+      <button class="btn-ins-tbl" onclick="insertTable()">⊞ Chèn vào bài</button>
+    </div>
+  </div>
+</div>
+
+<!-- Table edit menu (floats near selected table) -->
+<div id="tblMenu" style="display:none;position:fixed;z-index:150;
+  background:var(--sidebar);border:1px solid var(--border);border-radius:10px;
+  padding:6px;display:none;gap:4px;flex-wrap:wrap;max-width:320px;
+  box-shadow:0 8px 28px rgba(0,0,0,.55)">
+  <button class="tbtn" style="font-size:13px" title="Thêm hàng trên"  onclick="tblCmd('rowAbove')">⬆ Hàng trên</button>
+  <button class="tbtn" style="font-size:13px" title="Thêm hàng dưới" onclick="tblCmd('rowBelow')">⬇ Hàng dưới</button>
+  <button class="tbtn" style="font-size:13px" title="Xoá hàng"       onclick="tblCmd('delRow')">✕ Xoá hàng</button>
+  <div class="tsep" style="height:auto;width:1px"></div>
+  <button class="tbtn" style="font-size:13px" title="Thêm cột trái"  onclick="tblCmd('colLeft')">⬅ Cột trái</button>
+  <button class="tbtn" style="font-size:13px" title="Thêm cột phải"  onclick="tblCmd('colRight')">➡ Cột phải</button>
+  <button class="tbtn" style="font-size:13px" title="Xoá cột"        onclick="tblCmd('delCol')">✕ Xoá cột</button>
+  <div class="tsep" style="height:auto;width:1px"></div>
+  <button class="tbtn" style="font-size:13px;color:var(--danger)" title="Xoá bảng" onclick="tblCmd('delTable')">🗑 Xoá bảng</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════ STATE ════════════════════
+let D={folders:[]};
+let selF=null,selA=null,curTab='edit';
+let open=new Set();
+
+const LS_KEY='qlvb_data_v2';
+
+// ════════════════════ UTILS ════════════════════
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function toast(msg,col){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.borderLeftColor=col||'var(--accent)';
+  t.classList.add('on');clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('on'),2700);
+}
+function showModal(msg,cb){
+  document.getElementById('modalMsg').textContent=msg;
+  document.getElementById('modalOk').onclick=()=>{closeModal();cb()};
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal(){document.getElementById('modal').classList.remove('on')}
+
+// ════════════════════ LOCALSTORAGE ════════════════════
+function saveToLS(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify(D))}catch(e){}
+}
+function loadFromLS(){
+  try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null}catch(e){return null}
+}
+
+let _saveTimer=null,_statusTimer=null;
+function scheduleAutoSave(){
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{flushContent();saveToLS();showSaveStatus();},800);
+}
+function showSaveStatus(){
+  const el=document.getElementById('saveStatus');
+  el.classList.add('on');clearTimeout(_statusTimer);
+  _statusTimer=setTimeout(()=>el.classList.remove('on'),2500);
+}
+function flushContent(){
+  if(!selA)return;
+  const f=D.folders.find(x=>x.id===selF);
+  const a=f?.articles?.find(x=>x.id===selA);
+  if(a) a.content=document.getElementById('ta').innerHTML;
+}
+function autoSave(){flushContent();saveToLS();}
+
+// ════════════════════ RENDER TREE ════════════════════
+function render(){
+  const tree=document.getElementById('tree');
+  if(!D.folders.length){
+    tree.innerHTML=`<div style="padding:28px 16px;text-align:center;color:var(--dim);font-size:15px;line-height:1.7">
+      Chưa có thư mục nào.<br>Nhấn <b style="color:var(--accent)">+ Thêm Thư Mục</b><br>để bắt đầu.</div>`;
+    return;
+  }
+  tree.innerHTML='';
+  for(const f of D.folders)tree.appendChild(mkFolderEl(f));
+}
+function mkFolderEl(f){
+  const isOpen=open.has(f.id);
+  const d=document.createElement('div');
+  d.className='folder-wrap';d.dataset.fid=f.id;
+  d.innerHTML=`
+    <div class="folder-hdr" onclick="togFolder('${f.id}',event)">
+      <span class="ftoggle">${isOpen?'▾':'▸'}</span>
+      <span class="ficon">${isOpen?'📂':'📁'}</span>
+      <span class="fname" id="fn-${f.id}">${esc(f.name)}</span>
+      <div class="acts" onclick="event.stopPropagation()">
+        <button class="abt a" title="Thêm bài viết" onclick="startMkArt('${f.id}')">＋</button>
+        <button class="abt" title="Đổi tên" onclick="startRenF('${f.id}')">✏️</button>
+        <button class="abt d" title="Xoá thư mục" onclick="askDelF('${f.id}')">🗑️</button>
+      </div>
+    </div>
+    <div class="folder-kids" id="fk-${f.id}" style="${isOpen?'':'display:none'}"></div>`;
+  const kids=d.querySelector(`#fk-${f.id}`);
+  if(f.articles&&f.articles.length){for(const a of f.articles)kids.appendChild(mkArtEl(f,a))}
+  else kids.innerHTML='<div class="empty-hint">Thư mục trống – nhấn ＋ để thêm bài</div>';
+  return d;
+}
+function mkArtEl(f,a){
+  const isSel=selF===f.id&&selA===a.id;
+  const d=document.createElement('div');
+  d.className='art-item'+(isSel?' sel':'');d.dataset.aid=a.id;
+  d.innerHTML=`<span class="aicon">📄</span>
+    <span class="aname" id="an-${a.id}">${esc(a.name)}</span>
+    <div class="acts" onclick="event.stopPropagation()">
+      <button class="abt" title="Đổi tên" onclick="startRenA('${f.id}','${a.id}')">✏️</button>
+      <button class="abt d" title="Xoá bài viết" onclick="askDelA('${f.id}','${a.id}')">🗑️</button>
+    </div>`;
+  d.addEventListener('click',()=>selArt(f.id,a.id));
+  return d;
+}
+
+// ════════════════════ FOLDER OPS ════════════════════
+function togFolder(fid,e){
+  if(e.target.closest('.acts'))return;
+  open.has(fid)?open.delete(fid):open.add(fid);render();
+}
+function startMkFolder(){
+  const tree=document.getElementById('tree');
+  const tmp=document.createElement('div');tmp.className='folder-wrap';
+  tmp.innerHTML=`<div class="folder-hdr"><span class="ftoggle"> </span><span class="ficon">📁</span>
+    <input class="fname-inp" id="nfi" placeholder="Tên thư mục mới..." autocomplete="off"></div>`;
+  tree.appendChild(tmp);
+  const inp=tmp.querySelector('#nfi');inp.focus();
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')commitMkF(inp.value.trim());if(e.key==='Escape')render()});
+  inp.addEventListener('blur',()=>setTimeout(()=>commitMkF(inp.value.trim()),120));
+}
+function commitMkF(name){
+  if(!name){render();return;}
+  const f={id:uid(),name,articles:[]};
+  D.folders.push(f);open.add(f.id);render();saveToLS();
+  toast(`📁 Đã tạo thư mục "${name}"`);
+}
+function startRenF(fid){
+  const el=document.getElementById(`fn-${fid}`);
+  const f=D.folders.find(x=>x.id===fid);if(!el||!f)return;
+  const inp=document.createElement('input');inp.className='fname-inp';inp.value=f.name;
+  el.replaceWith(inp);inp.focus();inp.select();
+  const go=()=>{const n=inp.value.trim();if(n&&n!==f.name){f.name=n;saveToLS();toast('✏️ Đã đổi tên thư mục')}render()};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();if(e.key==='Escape')render()});
+  inp.addEventListener('blur',()=>setTimeout(go,120));
+}
+function askDelF(fid){
+  const f=D.folders.find(x=>x.id===fid);if(!f)return;
+  const c=f.articles?f.articles.length:0;
+  showModal(`Xoá thư mục "${f.name}"?\n${c?`Toàn bộ ${c} bài viết bên trong cũng bị xoá.`:'Thư mục này đang trống.'}`,()=>delF(fid));
+}
+function delF(fid){
+  D.folders=D.folders.filter(x=>x.id!==fid);open.delete(fid);
+  if(selF===fid){selF=selA=null;showEd(false)}
+  render();saveToLS();toast('🗑️ Đã xoá thư mục','var(--danger)');
+}
+
+// ════════════════════ ARTICLE OPS ════════════════════
+function startMkArt(fid){
+  open.add(fid);render();
+  const kids=document.getElementById(`fk-${fid}`);
+  const f=D.folders.find(x=>x.id===fid);
+  kids.innerHTML='';
+  if(f&&f.articles)for(const a of f.articles)kids.appendChild(mkArtEl(f,a));
+  const tmp=document.createElement('div');tmp.className='art-item';
+  tmp.innerHTML=`<span class="aicon">📄</span>
+    <input class="aname-inp" id="nai" placeholder="Tên bài viết mới..." autocomplete="off">`;
+  kids.appendChild(tmp);
+  const inp=tmp.querySelector('#nai');inp.focus();
+  const go=()=>{
+    const n=inp.value.trim();
+    if(n){const a={id:uid(),name:n,content:''};if(!f.articles)f.articles=[];f.articles.push(a);selArt(fid,a.id);saveToLS();toast(`📄 Đã tạo bài "${n}"`)}
+    render();
+  };
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go()}if(e.key==='Escape')render()});
+  inp.addEventListener('blur',()=>setTimeout(go,120));
+}
+function startRenA(fid,aid){
+  const el=document.getElementById(`an-${aid}`);
+  const f=D.folders.find(x=>x.id===fid);
+  const a=f?.articles?.find(x=>x.id===aid);if(!el||!a)return;
+  const inp=document.createElement('input');inp.className='aname-inp';inp.value=a.name;
+  el.replaceWith(inp);inp.focus();inp.select();
+  const go=()=>{
+    const n=inp.value.trim();
+    if(n&&n!==a.name){a.name=n;if(selA===aid)document.getElementById('artTitle').textContent=n;saveToLS();toast('✏️ Đã đổi tên bài viết')}
+    render();
+  };
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();if(e.key==='Escape')render()});
+  inp.addEventListener('blur',()=>setTimeout(go,120));
+}
+function askDelA(fid,aid){
+  const f=D.folders.find(x=>x.id===fid);
+  const a=f?.articles?.find(x=>x.id===aid);if(!a)return;
+  showModal(`Xoá bài viết "${a.name}"?\nThao tác này không thể hoàn tác.`,()=>delA(fid,aid));
+}
+function delA(fid,aid){
+  const f=D.folders.find(x=>x.id===fid);if(!f)return;
+  f.articles=f.articles.filter(x=>x.id!==aid);
+  if(selF===fid&&selA===aid){selF=selA=null;showEd(false)}
+  render();saveToLS();toast('🗑️ Đã xoá bài viết','var(--danger)');
+}
+
+// ════════════════════ SELECT / DISPLAY ════════════════════
+function selArt(fid,aid){
+  autoSave();
+  selF=fid;selA=aid;
+  const f=D.folders.find(x=>x.id===fid);
+  const a=f?.articles?.find(x=>x.id===aid);if(!a)return;
+  showEd(true);
+  document.getElementById('artTitle').textContent=a.name;
+  const ta=document.getElementById('ta');
+  ta.innerHTML=a.content||'';
+  normalizeBlocks();
+  // place cursor at end
+  ta.focus();
+  const range=document.createRange();range.selectNodeContents(ta);range.collapse(false);
+  const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+  if(curTab==='prev')mkPreview();
+  render();
+  if(window.innerWidth<=768)closeSB();
+}
+function showEd(yes){
+  document.getElementById('ph').style.display=yes?'none':'flex';
+  document.getElementById('ed').style.display=yes?'flex':'none';
+}
+
+// ════════════════════ TABS ════════════════════
+function swTab(t){
+  curTab=t;
+  document.getElementById('tEdit').classList.toggle('on',t==='edit');
+  document.getElementById('tPrev').classList.toggle('on',t==='prev');
+  document.getElementById('pEdit').style.display=t==='edit'?'flex':'none';
+  document.getElementById('pPrev').style.display=t==='prev'?'flex':'none';
+  if(t==='prev')mkPreview();
+  else document.getElementById('ta').focus();
+}
+function mkPreview(){
+  const html=document.getElementById('ta').innerHTML;
+  document.getElementById('prevOut').innerHTML=html||'<p style="color:var(--dim);font-style:italic">Chưa có nội dung.</p>';
+  // word count
+  const txt=document.getElementById('ta').innerText||'';
+  const words=txt.trim()?txt.trim().split(/\s+/).length:0;
+  const chars=txt.length;
+  const charsNS=txt.replace(/\s/g,'').length;
+  const lines=txt?txt.split('\n').length:0;
+  document.getElementById('wcBar').innerHTML=`
+    <div class="wc-item"><span class="wc-num">${words.toLocaleString('vi')}</span> từ</div>
+    <div class="wc-item"><span class="wc-num">${chars.toLocaleString('vi')}</span> ký tự</div>
+    <div class="wc-item"><span class="wc-num">${charsNS.toLocaleString('vi')}</span> ký tự (không khoảng trắng)</div>
+    <div class="wc-item"><span class="wc-num">${lines.toLocaleString('vi')}</span> dòng</div>`;
+}
+
+// ════════════════════ WYSIWYG COMMANDS ════════════════════
+function cmd(command){
+  document.execCommand('styleWithCSS',false,true);
+  document.execCommand(command,false,null);
+  document.getElementById('ta').focus();
+  scheduleAutoSave();
+  updateToolbarState();
+}
+function fmtBlock(tag){
+  document.execCommand('styleWithCSS',false,true);
+  document.execCommand('formatBlock',false,tag);
+  document.getElementById('ta').focus();
+  scheduleAutoSave();
+  updateToolbarState();
+}
+
+// Highlight active toolbar buttons based on current selection
+function updateToolbarState(){
+  const states={
+    'bold':'btn-bold','italic':'btn-italic',
+    'underline':'btn-underline','strikeThrough':'btn-strikethrough',
+    'insertUnorderedList':'btn-ul','insertOrderedList':'btn-ol'
+  };
+  for(const[c,id]of Object.entries(states)){
+    const btn=document.getElementById(id);
+    if(btn)btn.classList.toggle('active',document.queryCommandState(c));
+  }
+  // Detect heading / block type by walking up DOM from selection
+  const sel=window.getSelection();
+  let block='';
+  if(sel&&sel.rangeCount){
+    let node=sel.getRangeAt(0).commonAncestorContainer;
+    while(node&&node!==document.getElementById('ta')){
+      if(node.nodeType===1){
+        const t=node.tagName.toLowerCase();
+        if(['h1','h2','h3','p','blockquote','pre'].includes(t)){block=t;break;}
+      }
+      node=node.parentNode;
+    }
+  }
+  ['h1','h2','h3','p'].forEach(t=>{
+    const btn=document.getElementById(`btn-${t}`);
+    if(btn)btn.classList.toggle('active',block===t);
+  });
+  // Show/hide table menu
+  updateTableMenu();
+}
+
+// ════════════════════ COLOR ════════════════════
+let _savedRange=null;
+function toggleColorPicker(e){
+  e.stopPropagation();
+  // save selection before picker opens
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount)_savedRange=sel.getRangeAt(0).cloneRange();
+  document.getElementById('colorSwatches').classList.toggle('on');
+}
+function applyColor(hex){
+  document.getElementById('colorBar').style.background=hex;
+  document.getElementById('colorSwatches').classList.remove('on');
+  // restore selection
+  if(_savedRange){
+    const sel=window.getSelection();sel.removeAllRanges();sel.addRange(_savedRange);
+  }
+  document.execCommand('styleWithCSS',false,true);
+  document.execCommand('foreColor',false,hex);
+  document.getElementById('ta').focus();
+  scheduleAutoSave();
+}
+document.addEventListener('click',()=>document.getElementById('colorSwatches')?.classList.remove('on'));
+
+// ════════════════════ FONT SIZE / FAMILY ════════════════════
+// Save selection before select dropdown steals focus
+function saveRangeForSelect(){
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount)_savedRange=sel.getRangeAt(0).cloneRange();
+}
+function restoreRange(){
+  if(_savedRange){
+    const sel=window.getSelection();sel.removeAllRanges();sel.addRange(_savedRange);
+  }
+}
+
+function applyFontSize(size){
+  if(!size)return;
+  restoreRange();
+  const sel=window.getSelection();
+  if(!sel||sel.isCollapsed){toast('⚠️ Hãy bôi đen văn bản trước','var(--warn)');return;}
+  const range=sel.getRangeAt(0);
+  const frag=range.extractContents();
+  const span=document.createElement('span');
+  span.style.fontSize=size;
+  span.appendChild(frag);
+  range.insertNode(span);
+  sel.removeAllRanges();
+  const r=document.createRange();r.selectNodeContents(span);sel.addRange(r);
+  document.getElementById('ta').focus();
+  scheduleAutoSave();
+}
+
+function applyFont(font){
+  if(!font)return;
+  restoreRange();
+  const sel=window.getSelection();
+  if(!sel||sel.isCollapsed){toast('⚠️ Hãy bôi đen văn bản trước','var(--warn)');return;}
+  document.execCommand('styleWithCSS',false,true);
+  document.execCommand('fontName',false,font);
+  document.getElementById('ta').focus();
+  scheduleAutoSave();
+}
+
+// ════════════════════ LINE SPACING / PARAGRAPH SPACING ════════════════════
+// contenteditable browsers often leave the very first paragraph (or lines
+// separated only by <br>) as loose text directly inside #ta, with no <p>
+// wrapper at all. When that happens there's no "block" to attach
+// line-height/margin to, so this wraps any such loose content in a <p>.
+function normalizeBlocks(){
+  const ta=document.getElementById('ta');
+  const blockTags=['P','H1','H2','H3','LI','BLOCKQUOTE','PRE','DIV','UL','OL','TABLE','HR'];
+  let wrapper=null;
+  for(const node of Array.from(ta.childNodes)){
+    const isBlock=node.nodeType===1&&blockTags.includes(node.tagName);
+    if(isBlock){wrapper=null;continue;}
+    if(node.nodeType===3&&!node.textContent.trim()&&!wrapper)continue; // skip stray whitespace
+    if(!wrapper){wrapper=document.createElement('p');ta.insertBefore(wrapper,node);}
+    wrapper.appendChild(node);
+    if(node.nodeType===1&&node.tagName==='BR')wrapper=null; // <br> ends this paragraph; next node starts a new one
+  }
+}
+// Find every block-level element that the current selection touches
+// (or the block the cursor sits in, if nothing is selected).
+function getSelectedBlocks(){
+  const ta=document.getElementById('ta');
+  const sel=window.getSelection();
+  if(!sel||!sel.rangeCount)return [];
+  const range=sel.getRangeAt(0);
+  const blockTags=['P','H1','H2','H3','LI','BLOCKQUOTE','PRE','DIV'];
+  function findBlock(node){
+    while(node&&node!==ta){
+      if(node.nodeType===1&&blockTags.includes(node.tagName))return node;
+      node=node.parentNode;
+    }
+    return null;
+  }
+  const blocks=new Set();
+  if(range.collapsed){
+    const b=findBlock(range.startContainer);
+    if(b)blocks.add(b);
+  } else {
+    const walker=document.createTreeWalker(ta,NodeFilter.SHOW_ELEMENT,null);
+    let node;
+    while(node=walker.nextNode()){
+      if(blockTags.includes(node.tagName)&&range.intersectsNode(node))blocks.add(node);
+    }
+    if(!blocks.size){
+      const b1=findBlock(range.startContainer);
+      const b2=findBlock(range.endContainer);
+      if(b1)blocks.add(b1);
+      if(b2)blocks.add(b2);
+    }
+  }
+  return Array.from(blocks);
+}
+function applyLineSpacing(value){
+  if(!value)return;
+  restoreRange();
+  normalizeBlocks();
+  restoreRange();
+  const blocks=getSelectedBlocks();
+  if(!blocks.length){toast('⚠️ Hãy đặt con trỏ hoặc bôi đen đoạn văn cần chỉnh','var(--warn)');return;}
+  blocks.forEach(b=>{b.style.lineHeight=value==='normal'?'':value;});
+  document.getElementById('ta').focus();
+  scheduleAutoSave();
+  toast('↕️ Đã chỉnh giãn dòng');
+}
+function applyParaSpacing(value){
+  if(!value)return;
+  restoreRange();
+  normalizeBlocks();
+  restoreRange();
+  const blocks=getSelectedBlocks();
+  if(!blocks.length){toast('⚠️ Hãy đặt con trỏ hoặc bôi đen đoạn văn cần chỉnh','var(--warn)');return;}
+  blocks.forEach(b=>{b.style.marginBottom=value==='normal'?'':value;});
+  document.getElementById('ta').focus();
+  scheduleAutoSave();
+  toast('↕️ Đã chỉnh giãn đoạn văn');
+}
+
+// ════════════════════ HYPERLINK ════════════════════
+function openLinkModal(){
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount)_savedRange=sel.getRangeAt(0).cloneRange();
+  // Pre-fill text from selection
+  const selText=sel?sel.toString().trim():'';
+  // Check if cursor is on existing link
+  let existUrl='', existText=selText;
+  if(sel&&sel.rangeCount){
+    let node=sel.getRangeAt(0).commonAncestorContainer;
+    while(node&&node!==document.getElementById('ta')){
+      if(node.nodeType===1&&node.tagName.toLowerCase()==='a'){
+        existUrl=node.href||''; existText=node.textContent||selText; break;
+      }
+      node=node.parentNode;
+    }
+  }
+  document.getElementById('linkText').value=existText;
+  document.getElementById('linkUrl').value=existUrl;
+  document.getElementById('linkModal').classList.add('on');
+  setTimeout(()=>document.getElementById(existText?'linkUrl':'linkText').focus(),50);
+}
+function closeLinkModal(){document.getElementById('linkModal').classList.remove('on')}
+
+function insertLink(){
+  const url=document.getElementById('linkUrl').value.trim();
+  const text=document.getElementById('linkText').value.trim();
+  if(!url){toast('⚠️ Vui lòng nhập URL','var(--warn)');return;}
+  const href=url.startsWith('http')?url:'https://'+url;
+  closeLinkModal();
+  restoreRange();
+  document.getElementById('ta').focus();
+  const sel=window.getSelection();
+  if(sel&&!sel.isCollapsed){
+    // wrap selected text in <a>
+    document.execCommand('createLink',false,href);
+    // set target=_blank on newly created link
+    const links=document.getElementById('ta').querySelectorAll(`a[href="${href}"]`);
+    links.forEach(a=>{a.target='_blank';a.rel='noopener';if(text)a.textContent=text;});
+  } else {
+    // insert new link with custom text
+    const a=document.createElement('a');
+    a.href=href; a.target='_blank'; a.rel='noopener';
+    a.textContent=text||href;
+    const range=sel&&sel.rangeCount?sel.getRangeAt(0):null;
+    if(range){range.insertNode(a);range.setStartAfter(a);range.collapse(true);sel.removeAllRanges();sel.addRange(range);}
+    else document.execCommand('insertHTML',false,a.outerHTML);
+  }
+  scheduleAutoSave();
+  toast('🔗 Đã chèn liên kết','var(--success)');
+}
+
+function removeLink(){
+  document.getElementById('ta').focus();
+  document.execCommand('unlink',false,null);
+  scheduleAutoSave();
+  toast('✂ Đã xoá liên kết');
+}
+
+// ════════════════════ TABLE ════════════════════
+function openTableModal(){
+  // save current selection
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount)_savedRange=sel.getRangeAt(0).cloneRange();
+  document.getElementById('tblModal').classList.add('on');
+  updateTblPreview();
+}
+function closeTblModal(){document.getElementById('tblModal').classList.remove('on')}
+function updateTblPreview(){
+  const r=Math.max(1,Math.min(20,+document.getElementById('tblRows').value||3));
+  const c=Math.max(1,Math.min(10,+document.getElementById('tblCols').value||3));
+  const hdr=Array.from({length:c},(_,i)=>`Cột ${i+1}`).join(' | ');
+  const sep=Array(c).fill('---').join(' | ');
+  const row=Array(c).fill('   ').join(' | ');
+  document.getElementById('tblPreview').textContent=
+    `| ${hdr} |\n| ${sep} |\n`+Array(r).fill(`| ${row} |`).join('\n');
+}
+function insertTable(){
+  const r=Math.max(1,Math.min(20,+document.getElementById('tblRows').value||3));
+  const c=Math.max(1,Math.min(10,+document.getElementById('tblCols').value||3));
+  const ths=Array.from({length:c},(_,i)=>`<th>Cột ${i+1}</th>`).join('');
+  const tds=Array(c).fill('<td>&nbsp;</td>').join('');
+  const rows=Array(r).fill(`<tr>${tds}</tr>`).join('');
+  const html=`<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table><p><br></p>`;
+  // restore selection
+  if(_savedRange){
+    const sel=window.getSelection();sel.removeAllRanges();sel.addRange(_savedRange);
+  }
+  document.getElementById('ta').focus();
+  document.execCommand('insertHTML',false,html);
+  closeTblModal();
+  scheduleAutoSave();
+  toast(`⊞ Đã chèn bảng ${r}×${c}`);
+}
+
+// ════════════════════ TABLE EDIT ════════════════════
+let _curCell=null; // currently focused td/th
+
+function getTableContext(){
+  const sel=window.getSelection();
+  if(!sel||!sel.rangeCount)return null;
+  let node=sel.getRangeAt(0).commonAncestorContainer;
+  let cell=null,row=null,table=null;
+  while(node&&node!==document.getElementById('ta')){
+    if(node.nodeType===1){
+      const t=node.tagName.toLowerCase();
+      if(!cell&&(t==='td'||t==='th'))cell=node;
+      if(!row&&t==='tr')row=node;
+      if(!table&&t==='table'){table=node;break;}
+    }
+    node=node.parentNode;
+  }
+  return table?{table,row,cell}:null;
+}
+
+function updateTableMenu(){
+  const menu=document.getElementById('tblMenu');
+  const ctx=getTableContext();
+  if(ctx){
+    _curCell=ctx.cell;
+    // Position near the table
+    const rect=ctx.table.getBoundingClientRect();
+    menu.style.display='flex';
+    menu.style.top=(rect.bottom+6+window.scrollY)+'px';
+    menu.style.left=Math.max(8,rect.left)+'px';
+  } else {
+    menu.style.display='none';
+    _curCell=null;
+  }
+}
+
+function tblCmd(action){
+  const ctx=getTableContext();
+  if(!ctx&&action!=='delTable')return;
+  const {table,row,cell}=ctx||{table:null,row:null,cell:null};
+
+  if(action==='rowAbove'||action==='rowBelow'){
+    const cols=row.cells.length;
+    const newRow=document.createElement('tr');
+    for(let i=0;i<cols;i++)newRow.appendChild(document.createElement('td')).innerHTML='&nbsp;';
+    if(action==='rowAbove') row.parentNode.insertBefore(newRow,row);
+    else row.parentNode.insertBefore(newRow,row.nextSibling);
+    toast('✅ Đã thêm hàng');
+  }
+  else if(action==='delRow'){
+    const tbody=row.parentNode;
+    if(tbody.rows.length<=1&&table.querySelectorAll('tr').length<=2){
+      toast('⚠️ Bảng cần ít nhất 1 hàng dữ liệu','var(--warn)');return;
+    }
+    row.remove();toast('🗑 Đã xoá hàng','var(--danger)');
+  }
+  else if(action==='colLeft'||action==='colRight'){
+    const ci=cell.cellIndex;
+    table.querySelectorAll('tr').forEach(r=>{
+      const td=r.insertCell(action==='colLeft'?ci:ci+1);
+      td.innerHTML='&nbsp;';
+      if(r.parentNode.tagName.toLowerCase()==='thead')td.outerHTML=td.outerHTML.replace('<td','<th').replace('</td>','</th>');
+    });
+    toast('✅ Đã thêm cột');
+  }
+  else if(action==='delCol'){
+    const ci=cell.cellIndex;
+    const totalCols=row.cells.length;
+    if(totalCols<=1){toast('⚠️ Bảng cần ít nhất 1 cột','var(--warn)');return;}
+    table.querySelectorAll('tr').forEach(r=>{if(r.cells[ci])r.deleteCell(ci)});
+    toast('🗑 Đã xoá cột','var(--danger)');
+  }
+  else if(action==='delTable'){
+    const c=getTableContext();
+    if(c)c.table.remove();
+    document.getElementById('tblMenu').style.display='none';
+    toast('🗑 Đã xoá bảng','var(--danger)');
+  }
+  scheduleAutoSave();
+  updateToolbarState();
+}
+
+// ════════════════════ EXPORT PDF ════════════════════
+function exportPDF(){
+  if(!selA){toast('⚠️ Chưa chọn bài viết nào','var(--warn)');return;}
+  autoSave();
+  const f=D.folders.find(x=>x.id===selF);
+  const a=f?.articles?.find(x=>x.id===selA);
+  if(!a)return;
+  // Set print title
+  document.getElementById('printTitleBar').textContent=a.name;
+  document.title=a.name;
+  window.print();
+  // Restore
+  setTimeout(()=>{
+    document.title='Quản Lý Văn Bản';
+  },1000);
+}
+
+// ════════════════════ IMPORT / EXPORT ════════════════════
+function doExport(){
+  autoSave();
+  const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`van-ban-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();URL.revokeObjectURL(url);
+  toast('⬇️ Đã xuất file JSON','var(--success)');
+}
+function trigImp(){document.getElementById('impInput').click()}
+function doImport(ev){
+  const file=ev.target.files[0];if(!file)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const imp=JSON.parse(e.target.result);
+      if(!imp.folders||!Array.isArray(imp.folders)){toast('❌ File JSON không đúng định dạng','var(--danger)');return}
+      D=imp;selF=selA=null;open=new Set();showEd(false);render();saveToLS();
+      toast(`⬆️ Đã nhập thành công (${D.folders.length} thư mục)`,'var(--success)');
+    }catch{toast('❌ Lỗi đọc file JSON','var(--danger)')}
+  };
+  rd.readAsText(file);ev.target.value='';
+}
+
+// ════════════════════ MOBILE SIDEBAR ════════════════════
+function toggleSB(){
+  document.getElementById('sidebar').classList.toggle('on');
+  document.getElementById('overlay').classList.toggle('on');
+}
+function closeSB(){
+  document.getElementById('sidebar').classList.remove('on');
+  document.getElementById('overlay').classList.remove('on');
+}
+
+// ════════════════════ EDITOR EVENTS ════════════════════
+const ta=document.getElementById('ta');
+ta.addEventListener('input',scheduleAutoSave);
+ta.addEventListener('keyup',updateToolbarState);
+ta.addEventListener('mouseup',updateToolbarState);
+ta.addEventListener('focus',updateToolbarState);
+// Make Enter consistently create <p> blocks (Firefox can default to <br>,
+// older Chrome to bare <div>) so line/paragraph spacing always has a block to target
+ta.addEventListener('focus',()=>{try{document.execCommand('defaultParagraphSeparator','p')}catch(e){}});
+// Prevent paste of rich content from outside — paste as plain+html
+ta.addEventListener('paste',e=>{
+  e.preventDefault();
+  const text=(e.clipboardData.getData('text/plain')||'').trim();
+  // If the pasted content is just a link to an image, show the image instead of the raw link
+  const imgUrlRe=/^https?:\/\/\S+\.(jpg|jpeg|jfif|png|gif|webp|svg|bmp|avif|ico)(\?[^\s]*)?$/i;
+  if(imgUrlRe.test(text)){
+    insertImageFromUrl(text);
+    return;
+  }
+  const html=e.clipboardData.getData('text/html');
+  document.execCommand('insertHTML',false,html||text.replace(/\n/g,'<br>'));
+  scheduleAutoSave();
+});
+
+// ════════════════════ INSERT IMAGE FROM URL ════════════════════
+function insertImageFromUrl(url){
+  const img=document.createElement('img');
+  img.src=url;
+  img.alt='';
+  img.style.maxWidth='100%';
+  img.style.borderRadius='8px';
+  const sel=window.getSelection();
+  let range;
+  if(sel&&sel.rangeCount&&ta.contains(sel.getRangeAt(0).commonAncestorContainer)){
+    range=sel.getRangeAt(0);
+  } else {
+    range=document.createRange();
+    range.selectNodeContents(ta);
+    range.collapse(false);
+  }
+  range.deleteContents();
+  range.insertNode(img);
+  range.setStartAfter(img);range.collapse(true);
+  sel.removeAllRanges();sel.addRange(range);
+  ta.focus();
+  scheduleAutoSave();
+  toast('🖼️ Đã chèn ảnh từ đường link','var(--success)');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeTblModal();closeLinkModal()}});
+document.addEventListener('selectionchange',updateToolbarState);
+
+// ════════════════════ INIT ════════════════════
+const _saved=loadFromLS();
+if(_saved&&_saved.folders&&_saved.folders.length){
+  D=_saved;open=new Set(D.folders.map(f=>f.id));render();
+} else {
+  const i1=uid(),i2=uid(),i3=uid(),i4=uid();
+  D={folders:[
+    {id:i1,name:'Hướng dẫn sử dụng',articles:[
+      {id:i2,name:'Chào mừng',content:`<h1>Quản Lý Văn Bản ✨</h1><p>Chào mừng bạn! Đây là trình soạn thảo <strong style="color:#fab387">WYSIWYG</strong> – bạn thấy ngay kết quả khi gõ, không cần nhớ cú pháp.</p><h2>Tính năng</h2><ul><li>📁 Tạo, đổi tên, xoá <strong>thư mục</strong></li><li>📄 Soạn thảo trực quan như <em>Word Office</em></li><li>🎨 Màu chữ, cỡ chữ, font chữ</li><li>⊞ Chèn bảng</li><li>💾 Lưu tự động vào trình duyệt</li><li>⬇️ Xuất / ⬆️ Nhập file JSON</li></ul><h2>Thanh công cụ</h2><table><thead><tr><th>Nút</th><th>Chức năng</th></tr></thead><tbody><tr><td>↩ ↪</td><td>Hoàn tác / Làm lại</td></tr><tr><td><strong>B</strong> <em>I</em> U̲</td><td>Đậm, nghiêng, gạch chân</td></tr><tr><td>H1 H2 H3</td><td>Tiêu đề các cấp</td></tr><tr><td>• 1.</td><td>Danh sách, danh sách số</td></tr><tr><td>A màu</td><td>Đổi màu chữ đang chọn</td></tr></tbody></table><blockquote>💡 Bôi đen văn bản trước khi áp dụng màu sắc, cỡ chữ, hoặc font chữ!</blockquote>`}
+    ]},
+    {id:i3,name:'Ghi chú cá nhân',articles:[
+      {id:i4,name:'Ghi chú mẫu',content:`<h1>Ghi Chú Hôm Nay</h1><h2>Việc cần làm</h2><ul><li>Hoàn thành báo cáo tháng</li><li>Gọi điện cho khách hàng</li><li>Cập nhật lịch họp</li></ul><h2>Ý tưởng</h2><p>Cần nghiên cứu thêm về <strong>chủ đề mới</strong>. Có thể tham khảo tài liệu từ <em>các nguồn uy tín</em>.</p><hr><p><em>Ghi chú cuối ngày: mọi việc đang tiến triển tốt!</em></p>`}
+    ]}
+  ]};
+  open.add(i1);open.add(i3);render();saveToLS();
+}
+</script>
+</body>
+</html>

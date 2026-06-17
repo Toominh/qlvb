@@ -23,7 +23,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .hdr{height:var(--hh);background:var(--sidebar);border-bottom:1px solid var(--border);
   display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:10}
 .hdr-title{font-size:var(--fs-lg);font-weight:700;color:var(--accent);letter-spacing:.5px}
-.menu-btn{display:flex;background:none;border:none;color:var(--text);font-size:26px;
+.menu-btn{display:none;background:none;border:none;color:var(--text);font-size:26px;
   cursor:pointer;padding:8px;border-radius:8px;line-height:1}
 .menu-btn:hover{background:var(--surface)}
 
@@ -34,14 +34,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 /* ── SIDEBAR ── */
 .sidebar{width:var(--sw);background:var(--sidebar);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;
-  transition:width .25s ease,opacity .25s ease;
-}
-.sidebar.sb-hidden{width:0;opacity:0;pointer-events:none;border-right:none}
-.menu-btn{display:flex!important}
-.hdr-spacer{flex:1}
-.hdr-tabs .tab{padding:7px 16px;font-size:var(--fs-sm)}
-@media(max-width:480px){.hdr-title{font-size:var(--fs)}.hdr-tabs .tab{padding:6px 10px;font-size:13px}}
+  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
 .sb-top{padding:12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .btn-add-folder{width:100%;padding:11px 16px;background:var(--accent);color:var(--bg);
   border:none;border-radius:9px;font-size:var(--fs);font-weight:700;cursor:pointer;
@@ -101,7 +94,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .editor{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .ed-top{padding:14px 20px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
-.art-title{flex:1;font-size:var(--fs-xl);font-weight:700;word-break:break-word;line-height:1.3}
+.art-title{flex:1;font-size:var(--fs-xl);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .save-status{font-size:13px;color:var(--dim);display:flex;align-items:center;
   gap:5px;opacity:0;transition:opacity .3s;flex-shrink:0;white-space:nowrap}
 .save-status.on{opacity:1}
@@ -146,7 +139,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 /* ── WYSIWYG EDITOR AREA ── */
 .editor-area{
   flex:1;overflow-y:auto;padding:32px 40px;outline:none;
-  font-size:24px;line-height:1.5;color:var(--text);
+  font-size:var(--fs);line-height:1.85;color:var(--text);
   background:var(--bg);cursor:text;
   caret-color:var(--accent)}
 .editor-area:empty::before{content:attr(data-placeholder);color:var(--dim);
@@ -158,7 +151,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .editor-area h2,.preview-out h2{font-size:1.6em;margin:.7em 0 .3em;color:var(--accent);
   border-bottom:1px solid var(--border);padding-bottom:4px;font-weight:700}
 .editor-area h3,.preview-out h3{font-size:1.3em;margin:.6em 0 .2em;color:var(--text);font-weight:700}
-.editor-area p,.preview-out p{margin:0 0 1em 0}
+.editor-area p,.preview-out p{margin:1.2em 0}
 .editor-area strong,.preview-out strong{color:var(--warn);font-weight:700}
 .editor-area em,.preview-out em{color:var(--muted);font-style:italic}
 .editor-area u,.preview-out u{text-decoration:underline}
@@ -182,10 +175,15 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .editor-area ::selection{background:rgba(137,180,250,.3)}
 
 /* ── PREVIEW (read-only) ── */
-.preview-out{flex:1;overflow-y:auto;padding:32px 40px;line-height:1.5;font-size:24px;color:var(--text)}
+.preview-out{flex:1;overflow-y:auto;padding:32px 40px;line-height:1.85;font-size:var(--fs)}
 .preview-out::-webkit-scrollbar{width:6px}
 .preview-out::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
+/* ── WORD COUNT BAR ── */
+.wc-bar{padding:8px 20px;border-bottom:1px solid var(--border);
+  display:flex;gap:20px;flex-shrink:0;flex-wrap:wrap;background:var(--sidebar)}
+.wc-item{display:flex;align-items:center;gap:6px;font-size:var(--fs-sm);color:var(--muted)}
+.wc-num{font-size:var(--fs-lg);font-weight:700;color:var(--accent);line-height:1}
 
 /* ── TABLE MODAL ── */
 .tbl-modal{background:var(--sidebar);border:1px solid var(--border);border-radius:14px;
@@ -229,11 +227,11 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 /* ── PRINT / PDF ── giữ đúng theme tối, không ép nền trắng chữ đen ── */
 @media print{
-  @page{margin:0}
+  @page{margin:20mm 18mm}
   html,body{background:var(--bg)!important;color:var(--text)!important;
     font-size:13pt;overflow:visible!important;height:auto!important;
     -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
-  .hdr,.sidebar,.overlay,.md-bar,.hdr-tabs,.tabs,.ed-top,
+  .hdr,.sidebar,.overlay,.md-bar,.tabs,.ed-top,.wc-bar,
   #ph,#tblMenu,#tblModal,#linkModal,#modal,.toast,
   .sb-foot,.sb-top{display:none!important}
   .layout{display:block!important;background:var(--bg)!important}
@@ -242,10 +240,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     height:auto!important;max-height:none!important;width:100%!important;
     background:var(--bg)!important}
   .editor-area{
-    /* @page margin = 0 nên "lề" giờ là padding của chính khối nội dung —
-       cùng màu nền theme, không còn viền trắng quanh trang */
-    padding:20mm 18mm!important;box-sizing:border-box!important;
-    font-size:13pt;line-height:1.8;
+    padding:0!important;font-size:13pt;line-height:1.8;
     -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
   /* Không ép màu chữ/nền riêng cho h1, h2, strong, code, bảng, link...
      để PDF giữ nguyên đúng màu theme tối như trên trình soạn thảo */
@@ -262,10 +257,9 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   margin-bottom:14pt;padding-bottom:8pt;border-bottom:2px solid var(--border)}
 @media(max-width:768px){
   .sidebar{position:fixed;top:var(--hh);left:0;bottom:0;z-index:100;
-    transform:translateX(-102%);transition:transform .3s ease;width:min(var(--sw),92vw);
-    opacity:1!important;pointer-events:auto!important}
-  .sidebar.on{transform:translateX(0)!important}
-  .sidebar.sb-hidden.on{transform:translateX(0)!important}
+    transform:translateX(-102%);transition:transform .3s ease;width:min(var(--sw),92vw)}
+  .sidebar.on{transform:translateX(0)}
+  .menu-btn{display:flex!important}
   .editor-area,.preview-out{padding:16px 18px}
   .ed-top{padding:10px 14px}
   .art-title{font-size:var(--fs-lg)}
@@ -280,17 +274,12 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <header class="hdr">
   <button class="menu-btn" id="menuBtn" onclick="toggleSB()">☰</button>
   <div class="hdr-title">📋 Quản Lý Văn Bản</div>
-  <div class="hdr-spacer"></div>
-  <div class="tabs hdr-tabs" id="hdrTabs" style="display:none">
-    <button class="tab on" id="tEdit" onclick="swTab('edit')">✏️ Soạn thảo</button>
-    <button class="tab"    id="tPrev" onclick="swTab('prev')">👁 Xem trước</button>
-  </div>
 </header>
 
 <div class="layout">
   <div class="overlay" id="overlay" onclick="closeSB()"></div>
 
-  <aside class="sidebar sb-hidden" id="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sb-top">
       <button class="btn-add-folder" onclick="startMkFolder()">📁 + Thêm Thư Mục</button>
     </div>
@@ -314,6 +303,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div class="ed-top">
         <div class="art-title" id="artTitle"></div>
         <div class="save-status" id="saveStatus"><span class="save-dot"></span>Đã lưu tự động</div>
+        <div class="tabs">
+          <button class="tab on" id="tEdit" onclick="swTab('edit')">✏️ Soạn thảo</button>
+          <button class="tab"    id="tPrev" onclick="swTab('prev')">👁 Xem trước</button>
+        </div>
       </div>
 
       <!-- EDIT PANEL -->
@@ -377,7 +370,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
           <div class="tsep"></div>
           <!-- Font size -->
           <span class="tlabel">Cỡ:</span>
-          <select class="tsel" id="selFontSize" title="Cỡ chữ — không bôi đen = áp dụng cỡ mặc định toàn bộ"
+          <select class="tsel" id="selFontSize" title="Cỡ chữ"
             onmousedown="saveRangeForSelect()"
             onchange="applyFontSize(this.value);this.value=''">
             <option value="">Cỡ chữ</option>
@@ -443,6 +436,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
       <!-- PREVIEW PANEL -->
       <div class="panel" id="pPrev" style="display:none">
+        <div class="wc-bar" id="wcBar"></div>
         <div class="preview-out" id="prevOut"></div>
       </div>
     </div>
@@ -590,9 +584,9 @@ function mkFolderEl(f){
       <span class="ficon">${isOpen?'📂':'📁'}</span>
       <span class="fname" id="fn-${f.id}">${esc(f.name)}</span>
       <div class="acts" onclick="event.stopPropagation()">
-        <button class="abt a" title="Thêm bài viết" onmousedown="event.stopPropagation()" onclick="startMkArt('${f.id}')">＋</button>
-        <button class="abt" title="Đổi tên" onmousedown="event.preventDefault();event.stopPropagation()" onclick="startRenF('${f.id}')">✏️</button>
-        <button class="abt d" title="Xoá thư mục" onmousedown="event.stopPropagation()" onclick="askDelF('${f.id}')">🗑️</button>
+        <button class="abt a" title="Thêm bài viết" onclick="startMkArt('${f.id}')">＋</button>
+        <button class="abt" title="Đổi tên" onclick="startRenF('${f.id}')">✏️</button>
+        <button class="abt d" title="Xoá thư mục" onclick="askDelF('${f.id}')">🗑️</button>
       </div>
     </div>
     <div class="folder-kids" id="fk-${f.id}" style="${isOpen?'':'display:none'}"></div>`;
@@ -608,8 +602,8 @@ function mkArtEl(f,a){
   d.innerHTML=`<span class="aicon">📄</span>
     <span class="aname" id="an-${a.id}">${esc(a.name)}</span>
     <div class="acts" onclick="event.stopPropagation()">
-      <button class="abt" title="Đổi tên" onmousedown="event.preventDefault();event.stopPropagation()" onclick="startRenA('${f.id}','${a.id}')">✏️</button>
-      <button class="abt d" title="Xoá bài viết" onmousedown="event.stopPropagation()" onclick="askDelA('${f.id}','${a.id}')">🗑️</button>
+      <button class="abt" title="Đổi tên" onclick="startRenA('${f.id}','${a.id}')">✏️</button>
+      <button class="abt d" title="Xoá bài viết" onclick="askDelA('${f.id}','${a.id}')">🗑️</button>
     </div>`;
   d.addEventListener('click',()=>selArt(f.id,a.id));
   return d;
@@ -618,7 +612,6 @@ function mkArtEl(f,a){
 // ════════════════════ FOLDER OPS ════════════════════
 function togFolder(fid,e){
   if(e.target.closest('.acts'))return;
-  if(e.target.tagName==='INPUT')return;
   open.has(fid)?open.delete(fid):open.add(fid);render();
 }
 function startMkFolder(){
@@ -628,13 +621,8 @@ function startMkFolder(){
     <input class="fname-inp" id="nfi" placeholder="Tên thư mục mới..." autocomplete="off"></div>`;
   tree.appendChild(tmp);
   const inp=tmp.querySelector('#nfi');inp.focus();
-  let committed=false;
-  function doCommit(){if(committed)return;committed=true;commitMkF(inp.value.trim());}
-  inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){e.preventDefault();doCommit();}
-    if(e.key==='Escape'){committed=true;render();}
-  });
-  inp.addEventListener('blur',()=>setTimeout(doCommit,120));
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')commitMkF(inp.value.trim());if(e.key==='Escape')render()});
+  inp.addEventListener('blur',()=>setTimeout(()=>commitMkF(inp.value.trim()),120));
 }
 function commitMkF(name){
   if(!name){render();return;}
@@ -647,16 +635,9 @@ function startRenF(fid){
   const f=D.folders.find(x=>x.id===fid);if(!el||!f)return;
   const inp=document.createElement('input');inp.className='fname-inp';inp.value=f.name;
   el.replaceWith(inp);inp.focus();inp.select();
-  let committed=false;
-  const go=()=>{
-    if(committed)return;committed=true;
-    const n=inp.value.trim();if(n&&n!==f.name){f.name=n;saveToLS();toast('✏️ Đã đổi tên thư mục')}render();
-  };
-  inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){e.preventDefault();go();}
-    if(e.key==='Escape'){committed=true;render();}
-  });
-  inp.addEventListener('blur',()=>setTimeout(go,150));
+  const go=()=>{const n=inp.value.trim();if(n&&n!==f.name){f.name=n;saveToLS();toast('✏️ Đã đổi tên thư mục')}render()};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();if(e.key==='Escape')render()});
+  inp.addEventListener('blur',()=>setTimeout(go,120));
 }
 function askDelF(fid){
   const f=D.folders.find(x=>x.id===fid);if(!f)return;
@@ -681,17 +662,12 @@ function startMkArt(fid){
     <input class="aname-inp" id="nai" placeholder="Tên bài viết mới..." autocomplete="off">`;
   kids.appendChild(tmp);
   const inp=tmp.querySelector('#nai');inp.focus();
-  let committed=false;
   const go=()=>{
-    if(committed)return;committed=true;
     const n=inp.value.trim();
     if(n){const a={id:uid(),name:n,content:''};if(!f.articles)f.articles=[];f.articles.push(a);selArt(fid,a.id);saveToLS();toast(`📄 Đã tạo bài "${n}"`)}
     render();
   };
-  inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){e.preventDefault();go();}
-    if(e.key==='Escape'){committed=true;render();}
-  });
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go()}if(e.key==='Escape')render()});
   inp.addEventListener('blur',()=>setTimeout(go,120));
 }
 function startRenA(fid,aid){
@@ -700,21 +676,13 @@ function startRenA(fid,aid){
   const a=f?.articles?.find(x=>x.id===aid);if(!el||!a)return;
   const inp=document.createElement('input');inp.className='aname-inp';inp.value=a.name;
   el.replaceWith(inp);inp.focus();inp.select();
-  // Chặn click/mousedown trên input bubble lên art-item (tránh gọi selArt → render → xoá input)
-  inp.addEventListener('click',e=>e.stopPropagation());
-  inp.addEventListener('mousedown',e=>e.stopPropagation());
-  let committed=false;
   const go=()=>{
-    if(committed)return;committed=true;
     const n=inp.value.trim();
-    if(n&&n!==a.name){a.name=n;if(selA===aid){if(curTab==='prev')mkPreview();else document.getElementById('artTitle').textContent=n;}saveToLS();toast('✏️ Đã đổi tên bài viết')}
+    if(n&&n!==a.name){a.name=n;if(selA===aid)document.getElementById('artTitle').textContent=n;saveToLS();toast('✏️ Đã đổi tên bài viết')}
     render();
   };
-  inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){e.preventDefault();go();}
-    if(e.key==='Escape'){committed=true;render();}
-  });
-  inp.addEventListener('blur',()=>setTimeout(go,150));
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();if(e.key==='Escape')render()});
+  inp.addEventListener('blur',()=>setTimeout(go,120));
 }
 function askDelA(fid,aid){
   const f=D.folders.find(x=>x.id===fid);
@@ -750,7 +718,6 @@ function selArt(fid,aid){
 function showEd(yes){
   document.getElementById('ph').style.display=yes?'none':'flex';
   document.getElementById('ed').style.display=yes?'flex':'none';
-  document.getElementById('hdrTabs').style.display=yes?'flex':'none';
 }
 
 // ════════════════════ TABS ════════════════════
@@ -761,36 +728,22 @@ function swTab(t){
   document.getElementById('pEdit').style.display=t==='edit'?'flex':'none';
   document.getElementById('pPrev').style.display=t==='prev'?'flex':'none';
   if(t==='prev')mkPreview();
-  else{
-    const f=D.folders.find(x=>x.id===selF);
-    const a=f?.articles?.find(x=>x.id===selA);
-    document.getElementById('artTitle').textContent=a?a.name:'';
-    document.getElementById('ta').focus();
-  }
+  else document.getElementById('ta').focus();
 }
 function mkPreview(){
-  const taEl=document.getElementById('ta');
-  const prevEl=document.getElementById('prevOut');
-  const html=taEl.innerHTML;
-  prevEl.innerHTML=html||'<p style="color:var(--dim);font-style:italic">Chưa có nội dung.</p>';
-  // Sync base font-size and line-height from editor so preview matches exactly
-  const cs=window.getComputedStyle(taEl);
-  prevEl.style.fontSize=taEl.style.fontSize||cs.fontSize;
-  prevEl.style.lineHeight=taEl.style.lineHeight||cs.lineHeight;
-  // Sync dynamic paragraph spacing style into preview scope
-  let dynSt=document.getElementById('dynParaStyle');
-  let prevDynSt=document.getElementById('dynParaStylePrev');
-  if(!prevDynSt){prevDynSt=document.createElement('style');prevDynSt.id='dynParaStylePrev';document.head.appendChild(prevDynSt);}
-  if(dynSt&&dynSt.textContent){
-    prevDynSt.textContent=dynSt.textContent.replace(/#ta /g,'#prevOut ');
-  } else {
-    prevDynSt.textContent='';
-  }
-  const txt=taEl.innerText||'';
+  const html=document.getElementById('ta').innerHTML;
+  document.getElementById('prevOut').innerHTML=html||'<p style="color:var(--dim);font-style:italic">Chưa có nội dung.</p>';
+  // word count
+  const txt=document.getElementById('ta').innerText||'';
   const words=txt.trim()?txt.trim().split(/\s+/).length:0;
-  const f=D.folders.find(x=>x.id===selF);
-  const a=f?.articles?.find(x=>x.id===selA);
-  document.getElementById('artTitle').textContent=a?`${a.name} (${words.toLocaleString('vi')} từ)`:'';
+  const chars=txt.length;
+  const charsNS=txt.replace(/\s/g,'').length;
+  const lines=txt?txt.split('\n').length:0;
+  document.getElementById('wcBar').innerHTML=`
+    <div class="wc-item"><span class="wc-num">${words.toLocaleString('vi')}</span> từ</div>
+    <div class="wc-item"><span class="wc-num">${chars.toLocaleString('vi')}</span> ký tự</div>
+    <div class="wc-item"><span class="wc-num">${charsNS.toLocaleString('vi')}</span> ký tự (không khoảng trắng)</div>
+    <div class="wc-item"><span class="wc-num">${lines.toLocaleString('vi')}</span> dòng</div>`;
 }
 
 // ════════════════════ WYSIWYG COMMANDS ════════════════════
@@ -880,14 +833,7 @@ function applyFontSize(size){
   if(!size)return;
   restoreRange();
   const sel=window.getSelection();
-  const taEl=document.getElementById('ta');
-  // No selection → set base font-size of the whole editor
-  if(!sel||sel.isCollapsed){
-    taEl.style.fontSize=size;
-    scheduleAutoSave();
-    toast('🔡 Đã đổi cỡ chữ mặc định: '+size);
-    return;
-  }
+  if(!sel||sel.isCollapsed){toast('⚠️ Hãy bôi đen văn bản trước','var(--warn)');return;}
   const range=sel.getRangeAt(0);
   const frag=range.extractContents();
   const span=document.createElement('span');
@@ -896,7 +842,7 @@ function applyFontSize(size){
   range.insertNode(span);
   sel.removeAllRanges();
   const r=document.createRange();r.selectNodeContents(span);sel.addRange(r);
-  taEl.focus();
+  document.getElementById('ta').focus();
   scheduleAutoSave();
 }
 
@@ -966,50 +912,24 @@ function getSelectedBlocks(){
 function applyLineSpacing(value){
   if(!value)return;
   restoreRange();
-  const taEl=document.getElementById('ta');
   normalizeBlocks();
   restoreRange();
   const blocks=getSelectedBlocks();
-  if(!blocks.length){
-    // No selection → apply to whole editor base
-    taEl.style.lineHeight=value==='normal'?'':value;
-    scheduleAutoSave();
-    toast('↕️ Đã đổi giãn dòng mặc định');
-    return;
-  }
+  if(!blocks.length){toast('⚠️ Hãy đặt con trỏ hoặc bôi đen đoạn văn cần chỉnh','var(--warn)');return;}
   blocks.forEach(b=>{b.style.lineHeight=value==='normal'?'':value;});
-  taEl.focus();
+  document.getElementById('ta').focus();
   scheduleAutoSave();
   toast('↕️ Đã chỉnh giãn dòng');
 }
 function applyParaSpacing(value){
   if(!value)return;
   restoreRange();
-  const taEl=document.getElementById('ta');
   normalizeBlocks();
   restoreRange();
   const blocks=getSelectedBlocks();
-  if(!blocks.length){
-    // No selection → store as CSS var on editor for default paragraph margin
-    const cssVal=value==='normal'?'':'var(--para-spacing,3em)';
-    // Apply via a data attribute driving a dynamic style
-    if(value==='normal'){taEl.style.removeProperty('--para-spacing');taEl.dataset.paraSpacing='';}
-    else{taEl.style.setProperty('--para-spacing',value);taEl.dataset.paraSpacing=value;}
-    // Inject/update a <style> tag
-    let st=document.getElementById('dynParaStyle');
-    if(!st){st=document.createElement('style');st.id='dynParaStyle';document.head.appendChild(st);}
-    st.textContent=value&&value!=='normal'
-      ?`#ta p,#ta h1,#ta h2,#ta h3,#ta li,#ta blockquote{margin-top:0;margin-bottom:${value}}`
-      :'';
-    scheduleAutoSave();
-    toast('↕️ Đã đổi giãn đoạn mặc định');
-    return;
-  }
-  blocks.forEach(b=>{
-    if(value==='normal'){b.style.removeProperty('margin-top');b.style.removeProperty('margin-bottom');}
-    else{b.style.marginTop='0';b.style.marginBottom=value;}
-  });
-  taEl.focus();
+  if(!blocks.length){toast('⚠️ Hãy đặt con trỏ hoặc bôi đen đoạn văn cần chỉnh','var(--warn)');return;}
+  blocks.forEach(b=>{b.style.marginBottom=value==='normal'?'':value;});
+  document.getElementById('ta').focus();
   scheduleAutoSave();
   toast('↕️ Đã chỉnh giãn đoạn văn');
 }
@@ -1233,24 +1153,14 @@ function doImport(ev){
   rd.readAsText(file);ev.target.value='';
 }
 
-// ════════════════════ SIDEBAR TOGGLE ════════════════════
+// ════════════════════ MOBILE SIDEBAR ════════════════════
 function toggleSB(){
-  const sb=document.getElementById('sidebar');
-  const ov=document.getElementById('overlay');
-  if(window.innerWidth<=768){
-    sb.classList.toggle('on');
-    ov.classList.toggle('on');
-  } else {
-    sb.classList.toggle('sb-hidden');
-  }
+  document.getElementById('sidebar').classList.toggle('on');
+  document.getElementById('overlay').classList.toggle('on');
 }
 function closeSB(){
-  const sb=document.getElementById('sidebar');
-  const ov=document.getElementById('overlay');
-  if(window.innerWidth<=768){
-    sb.classList.remove('on');
-    ov.classList.remove('on');
-  }
+  document.getElementById('sidebar').classList.remove('on');
+  document.getElementById('overlay').classList.remove('on');
 }
 
 // ════════════════════ EDITOR EVENTS ════════════════════

@@ -226,45 +226,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   color:#fff;border-radius:9px;font-size:var(--fs);font-weight:700;cursor:pointer}
 
 .btn-pdf:hover{border-color:var(--danger);color:var(--danger)}
-.btn-load:hover{border-color:var(--accent);color:var(--accent)}
-
-/* ── LOAD MODAL ── */
-.load-modal{background:var(--sidebar);border:1px solid var(--border);border-radius:16px;
-  padding:0;max-width:420px;width:92%;overflow:hidden;
-  box-shadow:0 20px 60px rgba(0,0,0,.7)}
-.load-modal-hdr{padding:20px 24px 16px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between}
-.load-modal-hdr h3{font-size:var(--fs-lg);font-weight:700;display:flex;align-items:center;gap:10px;margin:0}
-.load-modal-close{background:none;border:none;color:var(--dim);cursor:pointer;
-  font-size:20px;padding:4px 8px;border-radius:7px;line-height:1;transition:.12s}
-.load-modal-close:hover{background:var(--surface2);color:var(--text)}
-.load-modal-body{padding:16px 20px 20px;max-height:60vh;overflow-y:auto}
-.load-modal-body::-webkit-scrollbar{width:5px}
-.load-modal-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-.load-searching{display:flex;align-items:center;gap:10px;color:var(--dim);
-  padding:24px 0;justify-content:center;font-size:var(--fs-sm)}
-.load-spin{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);
-  border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.load-empty{text-align:center;padding:32px 0;color:var(--dim);font-size:var(--fs-sm);line-height:1.8}
-.load-empty .load-empty-ico{font-size:44px;display:block;margin-bottom:10px;opacity:.5}
-.load-file-list{display:flex;flex-direction:column;gap:6px}
-.load-file-item{display:flex;align-items:center;gap:12px;padding:12px 14px;
-  border:1px solid var(--border);border-radius:11px;cursor:pointer;
-  background:var(--surface);transition:.15s;text-align:left;width:100%}
-.load-file-item:hover{border-color:var(--accent);background:var(--selected)}
-.load-file-item:hover .load-file-name{color:var(--accent)}
-.load-file-ico{font-size:24px;flex-shrink:0}
-.load-file-info{flex:1;min-width:0}
-.load-file-name{font-size:var(--fs);font-weight:600;color:var(--text);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;transition:.15s}
-.load-file-meta{font-size:12px;color:var(--dim);margin-top:2px}
-.load-file-arrow{font-size:18px;color:var(--dim);flex-shrink:0;transition:.15s}
-.load-file-item:hover .load-file-arrow{color:var(--accent);transform:translateX(3px)}
-.load-error{background:rgba(243,139,168,.12);border:1px solid rgba(243,139,168,.3);
-  border-radius:10px;padding:14px 16px;color:var(--danger);font-size:var(--fs-sm);line-height:1.6}
-.load-hint{font-size:12px;color:var(--dim);margin-top:14px;padding-top:12px;
-  border-top:1px solid var(--border);line-height:1.7;text-align:center}
 
 /* ── MỤC LỤC ── */
 .btn-toc{width:100%;padding:9px 14px;background:var(--surface);border:1.5px solid var(--border);
@@ -347,35 +308,9 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .toc-art-icon{flex-shrink:0;margin-top:1px}
 .toc-art-name{font-size:var(--fs-sm);flex:1;white-space:normal;word-break:break-word;line-height:1.4}
 .toc-empty-card{padding:12px 18px;color:var(--dim);font-style:italic;font-size:var(--fs-sm)}
-/* ── DATE PICKER POPUP ── */
-#dtPicker{
-  position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);
-  z-index:300;display:none;flex-direction:column;gap:4px;
-  background:var(--sidebar);border:1px solid var(--border);
-  border-radius:14px;padding:14px 12px 12px;
-  width:230px;
-  box-shadow:0 12px 40px rgba(0,0,0,.6);
-}
-#dtPicker.on{display:flex!important}
-.dt-picker-title{
-  font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
-  color:var(--dim);padding:0 4px 8px;border-bottom:1px solid var(--border);
-  margin-bottom:4px;display:flex;align-items:center;gap:6px
-}
-.dt-opt{
-  width:100%;text-align:left;background:none;
-  border:1px solid transparent;
-  color:var(--muted);
-  font-size:var(--fs-sm);padding:8px 10px;border-radius:9px;
-  cursor:pointer;display:flex;align-items:center;gap:10px;
-  transition:.14s;line-height:1.3
-}
-.dt-opt:hover{background:var(--selected);border-color:var(--accent);color:var(--text)}
-.dt-opt .dt-icon{font-size:18px;flex-shrink:0;width:24px;text-align:center}
-.dt-opt .dt-label{display:flex;flex-direction:column;gap:1px}
-.dt-opt .dt-label b{font-weight:600;font-size:var(--fs-sm);color:var(--text)}
-.dt-opt .dt-label span{font-size:11px;color:var(--dim)}
-.dt-opt:hover .dt-label b{color:var(--accent)}
+.dt-opt{width:100%;text-align:left;background:none;border:none;color:var(--text);
+  font-size:var(--fs-sm);padding:7px 8px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.dt-opt:hover{background:var(--hover);color:var(--accent)}
 /* Emoji picker — fixed overlay căn giữa */
 #emojiPicker{
   position:fixed!important;
@@ -485,9 +420,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     </div>
     <div class="tree" id="tree"></div>
     <div class="sb-foot">
-      <button class="btn-io btn-load" onclick="openLoadModal()" title="Tải dữ liệu từ thư mục data/">☁ Load</button>
-      <button class="btn-io btn-exp" onclick="doExport()">⬇ Xuất</button>
-      <button class="btn-io btn-imp" onclick="trigImp()">⬆ Nhập</button>
+      <button class="btn-io btn-exp" onclick="doExport()">⬇ Xuất JSON</button>
+      <button class="btn-io btn-imp" onclick="trigImp()">⬆ Nhập JSON</button>
       <button class="btn-io btn-pdf" onclick="exportPDF()" title="Xuất bài viết ra PDF">📄 PDF</button>
       <input type="file" id="impInput" accept=".json" style="display:none" onchange="doImport(event)">
     </div>
@@ -630,30 +564,15 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
           </select>
           <div class="tsep"></div>
           <!-- Chèn ngày giờ -->
-          <div class="color-wrap" id="dtWrap" style="position:relative">
+          <div class="color-wrap" id="dtWrap">
             <button class="tbtn" title="Chèn ngày/giờ" onmousedown="event.preventDefault()" onclick="toggleDtPicker(event)">📅</button>
-            <div id="dtPicker">
-              <div class="dt-picker-title">📅 Chèn ngày / giờ</div>
-              <button class="dt-opt" onmousedown="event.preventDefault()" onclick="insertDateTime('date-vn')">
-                <span class="dt-icon">📅</span>
-                <span class="dt-label"><b>Ngày</b><span>dd/mm/yyyy</span></span>
-              </button>
-              <button class="dt-opt" onmousedown="event.preventDefault()" onclick="insertDateTime('date-full')">
-                <span class="dt-icon">📆</span>
-                <span class="dt-label"><b>Ngày đầy đủ</b><span>Thứ, ngày tháng năm</span></span>
-              </button>
-              <button class="dt-opt" onmousedown="event.preventDefault()" onclick="insertDateTime('time')">
-                <span class="dt-icon">🕐</span>
-                <span class="dt-label"><b>Giờ</b><span>hh:mm:ss</span></span>
-              </button>
-              <button class="dt-opt" onmousedown="event.preventDefault()" onclick="insertDateTime('datetime')">
-                <span class="dt-icon">🗓️</span>
-                <span class="dt-label"><b>Ngày + Giờ</b><span>dd/mm/yyyy hh:mm</span></span>
-              </button>
-              <button class="dt-opt" onmousedown="event.preventDefault()" onclick="insertDateTime('full')">
-                <span class="dt-icon">📋</span>
-                <span class="dt-label"><b>Đầy đủ</b><span>Thứ, ngày tháng năm + giờ</span></span>
-              </button>
+            <div class="color-swatches" id="dtPicker" style="width:220px;padding:8px 10px;flex-direction:column;gap:2px">
+              <div style="font-size:11px;color:var(--dim);font-weight:600;margin-bottom:4px;padding-bottom:6px;border-bottom:1px solid var(--border)">Chèn ngày / giờ</div>
+              <button class="dt-opt" onmousedown="event.preventDefault()" onclick="insertDateTime('date-vn')">📅 Ngày (dd/mm/yyyy)</button>
+              <button class="dt-opt" onmousedown="event.preventDefault()" onclick="insertDateTime('date-full')">📆 Thứ, ngày tháng năm</button>
+              <button class="dt-opt" onmousedown="event.preventDefault()" onclick="insertDateTime('time')">🕐 Giờ:Phút:Giây</button>
+              <button class="dt-opt" onmousedown="event.preventDefault()" onclick="insertDateTime('datetime')">🗓️ Ngày + Giờ</button>
+              <button class="dt-opt" onmousedown="event.preventDefault()" onclick="insertDateTime('full')">📋 Đầy đủ (Thứ + Giờ)</button>
             </div>
           </div>
           <div class="tsep"></div>
@@ -744,22 +663,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   <button class="tbtn" style="font-size:13px" title="Xoá cột"        onclick="tblCmd('delCol')">✕ Xoá cột</button>
   <div class="tsep" style="height:auto;width:1px"></div>
   <button class="tbtn" style="font-size:13px;color:var(--danger)" title="Xoá bảng" onclick="tblCmd('delTable')">🗑 Xoá bảng</button>
-</div>
-
-<!-- Load data modal -->
-<div class="modal-bg" id="loadModal">
-  <div class="load-modal">
-    <div class="load-modal-hdr">
-      <h3>☁ Tải dữ liệu</h3>
-      <button class="load-modal-close" onclick="closeLoadModal()">✕</button>
-    </div>
-    <div class="load-modal-body" id="loadModalBody">
-      <div class="load-searching">
-        <div class="load-spin"></div>
-        Đang tìm file JSON...
-      </div>
-    </div>
-  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1831,138 +1734,6 @@ function doImport(ev){
   rd.readAsText(file);ev.target.value='';
 }
 
-// ════════════════════ LOAD FROM data/ ════════════════════
-
-function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-
-/* Phát hiện GitHub Pages và trả về {owner, repo} hoặc null */
-function detectGitHub(){
-  const host=window.location.hostname;
-  if(!host.endsWith('.github.io'))return null;
-  const owner=host.replace('.github.io','');
-  const parts=window.location.pathname.split('/').filter(Boolean);
-  const repo=parts.length ? parts[0] : owner+'.github.io';
-  return {owner,repo};
-}
-
-async function openLoadModal(){
-  document.getElementById('loadModal').classList.add('on');
-  await refreshLoadList();
-}
-
-async function refreshLoadList(){
-  const body=document.getElementById('loadModalBody');
-  body.innerHTML=`<div class="load-searching"><div class="load-spin"></div>Đang tìm file JSON...</div>`;
-
-  const gh=detectGitHub();
-  if(gh){
-    await _loadListFromGitHub(gh,body);
-    return;
-  }
-
-  // Fallback: local server (Python http.server) — parse directory listing HTML
-  try{
-    const res=await fetch('./data/',{cache:'no-cache'});
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const html=await res.text();
-    const doc2=new DOMParser().parseFromString(html,'text/html');
-    const names=Array.from(doc2.querySelectorAll('a[href]'))
-      .map(a=>a.getAttribute('href'))
-      .filter(h=>h&&/\.json$/i.test(h)&&!h.startsWith('?')&&!h.startsWith('..'))
-      .map(h=>decodeURIComponent(h.split('/').pop()));
-    _renderLoadList(names,body);
-  }catch(e){
-    body.innerHTML=`<div class="load-error">
-      ❌ <b>Không quét được thư mục data/</b><br>
-      ${escHtml(e.message)}<br><br>
-      <b>GitHub Pages:</b> đảm bảo repo public và có thư mục <code>data/</code>.<br>
-      <b>Local:</b> chạy qua <code>python -m http.server</code>.
-    </div>`;
-  }
-}
-
-async function _loadListFromGitHub({owner,repo},body){
-  // Tính subdir nếu là project page (username.github.io/repo-name/...)
-  const parts=window.location.pathname.split('/').filter(Boolean);
-  const subdir=parts.length>1 ? parts.slice(1,-1).join('/')+'/' : '';
-  const apiUrl=`https://api.github.com/repos/${owner}/${repo}/contents/${subdir}data`;
-
-  try{
-    const res=await fetch(apiUrl,{headers:{'Accept':'application/vnd.github.v3+json'}});
-    if(res.status===404){
-      body.innerHTML=`<div class="load-error">
-        ❌ Không tìm thấy thư mục <code>data/</code> trên repo <b>${owner}/${repo}</b>.<br>
-        <span style="font-size:13px;color:var(--muted)">Tạo thư mục và đặt file JSON vào đó, sau đó push lên GitHub.</span>
-      </div>`;return;
-    }
-    if(res.status===403){
-      body.innerHTML=`<div class="load-error">⚠️ GitHub API rate limit. Vui lòng thử lại sau vài phút.</div>`;return;
-    }
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const files=await res.json();
-    const names=files.filter(f=>f.type==='file'&&/\.json$/i.test(f.name)).map(f=>f.name);
-    _renderLoadList(names,body);
-  }catch(e){
-    body.innerHTML=`<div class="load-error">❌ Lỗi GitHub API: ${escHtml(e.message)}</div>`;
-  }
-}
-
-let _loadFileNames=[];
-
-function _renderLoadList(names,body){
-  if(!names.length){
-    body.innerHTML=`<div class="load-empty">
-      <span class="load-empty-ico">📂</span>
-      Không tìm thấy file <code>.json</code> nào<br>trong thư mục <code>data/</code>.
-    </div>`;return;
-  }
-  _loadFileNames=names;
-  const list=document.createElement('div');
-  list.className='load-file-list';
-  names.forEach((name,i)=>{
-    const label=name.replace(/\.json$/i,'').replace(/[-_]/g,' ');
-    const btn=document.createElement('button');
-    btn.className='load-file-item';
-    btn.innerHTML=`
-      <span class="load-file-ico">📄</span>
-      <span class="load-file-info">
-        <span class="load-file-name">${escHtml(label)}</span>
-        <span class="load-file-meta">${escHtml(name)}</span>
-      </span>
-      <span class="load-file-arrow">→</span>`;
-    btn.onclick=()=>loadDataFile(_loadFileNames[i]);
-    list.appendChild(btn);
-  });
-  body.innerHTML='';
-  body.appendChild(list);
-  const hint=document.createElement('div');
-  hint.className='load-hint';
-  hint.innerHTML=`${names.length} file · Nhấn để tải và thay thế dữ liệu hiện tại`;
-  body.appendChild(hint);
-}
-
-async function loadDataFile(name){
-  try{
-    const resp=await fetch(`./data/${encodeURIComponent(name)}`,{cache:'no-cache'});
-    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const imp=await resp.json();
-    if(!imp.folders||!Array.isArray(imp.folders)){
-      toast('❌ File JSON không đúng định dạng','var(--danger)');return;
-    }
-    D=imp;selF=selA=null;open=new Set();showEd(false);
-    D.folders.forEach(f=>open.add(f.id));
-    render();saveToLS();
-    const totalArts=D.folders.reduce((s,f)=>s+(f.articles?f.articles.length:0),0);
-    const label=name.replace(/\.json$/i,'').replace(/[-_]/g,' ');
-    closeLoadModal();
-    toast(`✅ Đã tải "${label}" — ${D.folders.length} thư mục, ${totalArts} bài viết`,'var(--success)');
-  }catch(err){
-    toast('❌ Lỗi tải file: '+err.message,'var(--danger)');
-  }
-}
-
-function closeLoadModal(){document.getElementById('loadModal').classList.remove('on')}
-
 // ════════════════════ SIDEBAR TOGGLE ════════════════════
 function isMobile(){return window.innerWidth<=768}
 function toggleSB(){
@@ -2031,7 +1802,7 @@ function insertImageFromUrl(url){
   scheduleAutoSave();
   toast('🖼️ Đã chèn ảnh từ đường link','var(--success)');
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeTblModal();closeLinkModal();closeLoadModal()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeTblModal();closeLinkModal()}});
 document.addEventListener('selectionchange',updateToolbarState);
 
 // ════════════════════ INIT ════════════════════

@@ -2228,16 +2228,7 @@ ta.addEventListener('paste',e=>{
 
   // Không có URL — paste thường
   const html=e.clipboardData.getData('text/html');
-  if(html){
-    document.execCommand('insertHTML',false,html);
-  } else {
-    const lines=text.split('\n');
-    const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    const pasteHtml=lines.length>1
-      ? lines.map(l=>`<div>${l?esc(l):'<br>'}</div>`).join('')
-      : esc(text);
-    document.execCommand('insertHTML',false,pasteHtml);
-  }
+  document.execCommand('insertHTML',false,html||text.replace(/\n/g,'<br>'));
   scheduleAutoSave();
 });
 

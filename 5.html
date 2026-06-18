@@ -376,35 +376,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .toc-art-icon{flex-shrink:0;margin-top:1px}
 .toc-art-name{font-size:var(--fs-sm);flex:1;white-space:normal;word-break:break-word;line-height:1.4}
 .toc-empty-card{padding:12px 18px;color:var(--dim);font-style:italic;font-size:var(--fs-sm)}
-/* ── MENTION CHIP (link kiểu Notion) ── */
-.mention-chip{
-  display:inline-flex;align-items:center;gap:5px;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:6px;padding:2px 8px 2px 5px;
-  font-size:.82em;color:var(--accent);
-  text-decoration:none;cursor:pointer;
-  vertical-align:middle;line-height:1.5;
-  max-width:320px;white-space:nowrap;overflow:hidden;
-  transition:background .15s,border-color .15s;
-  position:relative;
-}
-.mention-chip:hover{background:var(--selected);border-color:var(--accent)}
-.mention-chip .mc-favicon{
-  width:14px;height:14px;border-radius:3px;flex-shrink:0;object-fit:contain;
-}
-.mention-chip .mc-favicon-emoji{font-size:13px;line-height:1;flex-shrink:0}
-.mention-chip .mc-title{
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;
-}
-.mention-chip .mc-badge{
-  font-size:10px;color:var(--dim);background:var(--bg);
-  border:1px solid var(--border);border-radius:4px;
-  padding:0 5px;flex-shrink:0;line-height:1.6;
-}
-/* Placeholder chip hiện khi đang fetch */
-.mention-chip.loading{opacity:.6;animation:chipPulse 1s ease-in-out infinite alternate}
-@keyframes chipPulse{from{opacity:.4}to{opacity:.75}}
-
 /* ── DATE PICKER POPUP ── */
 #dtPicker{
   position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);
@@ -2193,31 +2164,38 @@ ta.addEventListener('paste',e=>{
     return;
   }
 
-  // Nếu paste đúng 1 URL (không phải ảnh) → chèn mention chip kiểu Notion
+  // Nếu paste đúng 1 URL (không phải ảnh) → chèn <a href>
   const singleUrlRe=/^https?:\/\/[^\s]{4,}$/i;
   if(singleUrlRe.test(text)){
-    insertMentionChip(text);
+    const a=document.createElement('a');
+    a.href=text;a.textContent=text;a.target='_blank';a.rel='noopener noreferrer';
+    const sel=window.getSelection();
+    let range;
+    if(sel&&sel.rangeCount&&ta.contains(sel.getRangeAt(0).commonAncestorContainer)){
+      range=sel.getRangeAt(0);
+    } else {
+      range=document.createRange();range.selectNodeContents(ta);range.collapse(false);
+    }
+    range.deleteContents();range.insertNode(a);
+    range.setStartAfter(a);range.collapse(true);
+    sel.removeAllRanges();sel.addRange(range);
+    ta.focus();scheduleAutoSave();
     return;
   }
 
-  // Text hỗn hợp hoặc nhiều dòng — tự động linkify URLs trong đó (kiểu mention chip)
+  // Text hỗn hợp hoặc nhiều dòng — tự động linkify URLs trong đó
   const urlInTextRe=/https?:\/\/[^\s<>"']+/gi;
   if(urlInTextRe.test(text)){
-    // Build HTML: mỗi dòng thành <p>, URL trong dòng wrap thành mention chip <a>
+    // Build HTML: mỗi dòng thành <p>, URL trong dòng wrap thành <a>
     const html=text.split('\n').map(line=>{
       const escaped=line
         .replace(/&/g,'&amp;')
         .replace(/</g,'&lt;')
         .replace(/>/g,'&gt;');
-      const linked=escaped.replace(/https?:\/\/[^\s<>"'&]+/gi,rawEscaped=>{
-        const rawUrl=rawEscaped.replace(/&amp;/g,'&');
-        const p=detectPlatform(rawUrl);
-        const fav=faviconUrl(rawUrl);
-        const favHtml=fav
-          ?`<img class="mc-favicon" src="${fav}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'mc-favicon-emoji',textContent:'${p.emoji}'}))"/>`
-          :`<span class="mc-favicon-emoji">${p.emoji}</span>`;
-        const shortTitle=rawUrl.replace(/^https?:\/\/(www\.)?/,'').split('/')[0];
-        return `<a href="${rawUrl}" target="_blank" rel="noopener noreferrer" class="mention-chip" contenteditable="false" data-mention-url="${rawUrl}">${favHtml}<span class="mc-title">${shortTitle}</span><span class="mc-badge">${p.label}</span></a>`;
+      const linked=escaped.replace(/https?:\/\/[^\s<>"'&]+/gi,url=>{
+        // Decode lại & đã escape trong URL
+        const rawUrl=url.replace(/&amp;/g,'&');
+        return `<a href="${rawUrl}" target="_blank" rel="noopener noreferrer">${url}</a>`;
       });
       return `<p>${linked||'<br>'}</p>`;
     }).join('');
@@ -2232,158 +2210,7 @@ ta.addEventListener('paste',e=>{
   scheduleAutoSave();
 });
 
-// ════════════════════ MENTION CHIP ════════════════════
-function detectPlatform(url){
-  try{
-    const h=new URL(url).hostname.replace(/^www\./,'');
-    if(/youtube\.com|youtu\.be/.test(h)) return {label:'YouTube',emoji:'▶️'};
-    if(/facebook\.com|fb\.com/.test(h))  return {label:'Facebook',emoji:'👥'};
-    if(/twitter\.com|x\.com/.test(h))    return {label:'X',emoji:'🐦'};
-    if(/instagram\.com/.test(h))         return {label:'Instagram',emoji:'📷'};
-    if(/tiktok\.com/.test(h))            return {label:'TikTok',emoji:'🎵'};
-    if(/github\.com/.test(h))            return {label:'GitHub',emoji:'🐙'};
-    if(/notion\.so/.test(h))             return {label:'Notion',emoji:'📝'};
-    if(/docs\.google\.com/.test(h))      return {label:'Google Docs',emoji:'📄'};
-    if(/drive\.google\.com/.test(h))     return {label:'Drive',emoji:'📁'};
-    if(/linkedin\.com/.test(h))          return {label:'LinkedIn',emoji:'💼'};
-    if(/reddit\.com/.test(h))            return {label:'Reddit',emoji:'🤖'};
-    if(/wikipedia\.org/.test(h))         return {label:'Wikipedia',emoji:'📖'};
-    if(/zalo\.me/.test(h))               return {label:'Zalo',emoji:'💬'};
-    return {label:h,emoji:'🔗'};
-  }catch(e){return {label:'Link',emoji:'🔗'};}
-}
-
-function faviconUrl(url){
-  try{
-    const origin=new URL(url).origin;
-    // Google S2 — reliable cross-origin favicon service
-    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(origin)}&sz=32`;
-  }catch(e){return null;}
-}
-
-async function fetchPageTitle(url){
-  const T=ms=>new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms));
-
-  // ── 1. oEmbed: YouTube & Facebook (CORS-free, chính thức) ──
-  try{
-    const u=new URL(url);
-    const h=u.hostname.replace(/^www\./,'');
-
-    if(/youtube\.com|youtu\.be/.test(h)){
-      const r=await Promise.race([
-        fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`),T(5000)]);
-      if(r.ok){const j=await r.json();if(j.title)return j.title;}
-    }
-
-    if(/facebook\.com|fb\.com/.test(h)){
-      const r=await Promise.race([
-        fetch(`https://www.facebook.com/plugins/oembed.json?url=${encodeURIComponent(url)}`),T(5000)]);
-      if(r.ok){const j=await r.json();if(j.title)return j.title;}
-    }
-  }catch(e){}
-
-  // ── 2. CORS Proxy chain — thử lần lượt ──
-  const proxies=[
-    u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
-    u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    u=>`https://thingproxy.freeboard.io/fetch/${encodeURIComponent(u)}`,
-  ];
-
-  for(const makeUrl of proxies){
-    try{
-      const res=await Promise.race([fetch(makeUrl(url)),T(6000)]);
-      if(!res.ok) continue;
-      const html=await res.text();
-      // Ưu tiên og:title (đầy đủ hơn <title>)
-      const og=html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']{1,300})["']/i)
-              ||html.match(/<meta[^>]+content=["']([^"']{1,300})["'][^>]+property=["']og:title["']/i);
-      if(og) return og[1].replace(/\s+/g,' ').trim();
-      const t=html.match(/<title[^>]*>([^<]{1,300})<\/title>/i);
-      if(t) return t[1].replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/\s+/g,' ').trim();
-    }catch(e){ continue; }
-  }
-
-  // ── 3. Fallback hostname ──
-  try{return new URL(url).hostname.replace(/^www\./,'');}catch(e){return url;}
-}
-
-function buildChipEl(url, title, platform){
-  const a=document.createElement('a');
-  a.href=url;
-  a.target='_blank';
-  a.rel='noopener noreferrer';
-  a.className='mention-chip';
-  a.contentEditable='false';   // không cho sửa bên trong chip
-  a.dataset.mentionUrl=url;
-
-  // Favicon hoặc emoji
-  const fav=faviconUrl(url);
-  if(fav){
-    const img=document.createElement('img');
-    img.className='mc-favicon';
-    img.src=fav;
-    img.onerror=()=>{img.replaceWith(emojiSpan(platform.emoji));};
-    a.appendChild(img);
-  } else {
-    a.appendChild(emojiSpan(platform.emoji));
-  }
-
-  // Title
-  const titleSpan=document.createElement('span');
-  titleSpan.className='mc-title';
-  titleSpan.textContent=title||url;
-  a.appendChild(titleSpan);
-
-  // Badge nền tảng
-  const badge=document.createElement('span');
-  badge.className='mc-badge';
-  badge.textContent=platform.label;
-  a.appendChild(badge);
-
-  return a;
-}
-function emojiSpan(e){
-  const s=document.createElement('span');
-  s.className='mc-favicon-emoji';s.textContent=e;return s;
-}
-
-function insertChipAtCaret(chipEl){
-  const sel=window.getSelection();
-  let range;
-  if(sel&&sel.rangeCount&&ta.contains(sel.getRangeAt(0).commonAncestorContainer)){
-    range=sel.getRangeAt(0);
-  } else {
-    range=document.createRange();range.selectNodeContents(ta);range.collapse(false);
-  }
-  range.deleteContents();
-
-  // Chèn chip + space sau
-  const space=document.createTextNode('\u00A0');
-  range.insertNode(space);
-  range.insertNode(chipEl);
-  range.setStartAfter(space);range.collapse(true);
-  sel.removeAllRanges();sel.addRange(range);
-  ta.focus();
-  scheduleAutoSave();
-}
-
-async function insertMentionChip(url){
-  const platform=detectPlatform(url);
-
-  // 1. Chèn ngay chip placeholder (loading)
-  const placeholder=buildChipEl(url,'Đang tải…',platform);
-  placeholder.classList.add('loading');
-  insertChipAtCaret(placeholder);
-
-  // 2. Fetch title bất đồng bộ, rồi cập nhật chip
-  const title=await fetchPageTitle(url);
-  const titleSpan=placeholder.querySelector('.mc-title');
-  if(titleSpan) titleSpan.textContent=title||url;
-  placeholder.classList.remove('loading');
-  scheduleAutoSave();
-  toast(`🔗 Đã chèn link: ${title||url}`,'var(--accent)');
-}
-
+// ════════════════════ INSERT IMAGE FROM URL ════════════════════
 function insertImageFromUrl(url){
   const img=document.createElement('img');
   img.src=url;

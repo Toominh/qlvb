@@ -2263,73 +2263,48 @@ function faviconUrl(url){
 
 async function fetchPageTitle(url){
   const T=ms=>new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms));
-  const decodeHtmlEntities=s=>s.replace(/&amp;/g,'&').replace(/&#39;/g,"'")
-    .replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s+/g,' ').trim();
 
-  let u,h;
-  try{u=new URL(url);h=u.hostname.replace(/^www\./,'');}catch(e){return url;}
+  // ── 1. oEmbed: YouTube & Facebook (CORS-free, chính thức) ──
+  try{
+    const u=new URL(url);
+    const h=u.hostname.replace(/^www\./,'');
 
-  // ── 1. YouTube oEmbed — hoạt động không cần token ──
-  if(/youtube\.com|youtu\.be/.test(h)){
-    try{
+    if(/youtube\.com|youtu\.be/.test(h)){
       const r=await Promise.race([
         fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`),T(5000)]);
       if(r.ok){const j=await r.json();if(j.title)return j.title;}
-    }catch(e){}
-  }
-
-  // ── 2. Facebook — parse info từ URL vì oEmbed cần token ──
-  if(/facebook\.com|fb\.com/.test(h)){
-    const path=u.pathname.replace(/\/+$/,'');
-    const parts=path.split('/').filter(Boolean);
-    // fb.com/watch?v=ID hoặc facebook.com/video/...
-    const vid=u.searchParams.get('v')||u.searchParams.get('video_id');
-    if(vid) return `Video Facebook #${vid}`;
-    // facebook.com/PageName/posts/123
-    if(parts.length>=2 && parts[1]==='posts') return `Bài viết của ${parts[0]}`;
-    if(parts.length>=2 && parts[1]==='videos') return `Video của ${parts[0]}`;
-    if(parts.length>=1 && parts[0]==='groups') return parts[2]==='posts'?`Bài viết nhóm FB`:`Nhóm ${parts[1]||'Facebook'}`;
-    if(parts.length>=1 && parts[0]==='reel') return `Reel Facebook`;
-    if(parts.length>=1 && parts[0]==='story') return `Story Facebook`;
-    if(parts.length===1) return `Trang ${parts[0]}`;
-    return `Facebook`;
-  }
-
-  // ── 3. TikTok — parse từ URL ──
-  if(/tiktok\.com/.test(h)){
-    const parts=u.pathname.split('/').filter(Boolean);
-    // /@username/video/ID
-    if(parts[0]&&parts[0].startsWith('@')){
-      const user=parts[0].replace('@','');
-      return parts[1]==='video'?`Video TikTok của @${user}`:`Trang @${user}`;
     }
-    return 'TikTok';
-  }
 
-  // ── 4. Instagram — parse từ URL ──
-  if(/instagram\.com/.test(h)){
-    const parts=u.pathname.split('/').filter(Boolean);
-    if(parts[0]==='p'||parts[0]==='reel') return `${parts[0]==='reel'?'Reel':'Bài viết'} Instagram`;
-    if(parts[0]&&!['explore','stories'].includes(parts[0])) return `@${parts[0]} trên Instagram`;
-    return 'Instagram';
-  }
-
-  // ── 5. corsproxy.io cho các trang còn lại ──
-  try{
-    const res=await Promise.race([
-      fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`),T(7000)]);
-    if(res.ok){
-      const html=await res.text();
-      const og=html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']{1,300})["']/i)
-              ||html.match(/<meta[^>]+content=["']([^"']{1,300})["'][^>]+property=["']og:title["']/i);
-      if(og) return decodeHtmlEntities(og[1]);
-      const t=html.match(/<title[^>]*>([^<]{1,300})<\/title>/i);
-      if(t) return decodeHtmlEntities(t[1]);
+    if(/facebook\.com|fb\.com/.test(h)){
+      const r=await Promise.race([
+        fetch(`https://www.facebook.com/plugins/oembed.json?url=${encodeURIComponent(url)}`),T(5000)]);
+      if(r.ok){const j=await r.json();if(j.title)return j.title;}
     }
   }catch(e){}
 
-  // ── 6. Fallback hostname ──
-  return h;
+  // ── 2. CORS Proxy chain — thử lần lượt ──
+  const proxies=[
+    u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    u=>`https://thingproxy.freeboard.io/fetch/${encodeURIComponent(u)}`,
+  ];
+
+  for(const makeUrl of proxies){
+    try{
+      const res=await Promise.race([fetch(makeUrl(url)),T(6000)]);
+      if(!res.ok) continue;
+      const html=await res.text();
+      // Ưu tiên og:title (đầy đủ hơn <title>)
+      const og=html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']{1,300})["']/i)
+              ||html.match(/<meta[^>]+content=["']([^"']{1,300})["'][^>]+property=["']og:title["']/i);
+      if(og) return og[1].replace(/\s+/g,' ').trim();
+      const t=html.match(/<title[^>]*>([^<]{1,300})<\/title>/i);
+      if(t) return t[1].replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/\s+/g,' ').trim();
+    }catch(e){ continue; }
+  }
+
+  // ── 3. Fallback hostname ──
+  try{return new URL(url).hostname.replace(/^www\./,'');}catch(e){return url;}
 }
 
 function buildChipEl(url, title, platform){

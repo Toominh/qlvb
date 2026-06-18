@@ -41,13 +41,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .menu-btn{display:flex!important}
 .hdr-spacer{flex:1}
 .hdr-tabs .tab{padding:7px 16px;font-size:var(--fs-sm)}
-.hdr-actions{display:flex;align-items:center}
-.btn-new-art{background:var(--accent);color:var(--bg);border:none;border-radius:9px;
-  width:38px;height:38px;font-size:22px;font-weight:700;line-height:1;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
-.btn-new-art:hover{background:var(--accent2)}
-@media(max-width:480px){.hdr-title{font-size:var(--fs)}.hdr-tabs .tab{padding:6px 10px;font-size:13px}
-  .btn-new-art{width:32px;height:32px;font-size:19px}}
+@media(max-width:480px){.hdr-title{font-size:var(--fs)}.hdr-tabs .tab{padding:6px 10px;font-size:13px}}
 .sb-top{padding:12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .btn-add-folder{width:100%;padding:11px 16px;background:var(--accent);color:var(--bg);
   border:none;border-radius:9px;font-size:var(--fs);font-weight:700;cursor:pointer;
@@ -108,29 +102,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .ed-top{padding:14px 20px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
 .art-title{flex:1;font-size:var(--fs-xl);font-weight:700;word-break:break-word;line-height:1.3}
-.title-wrap{position:relative;display:flex;align-items:center;flex:1;min-width:0;gap:4px}
-.art-title-input{
-  flex:1;font-size:var(--fs-xl);font-weight:700;line-height:1.3;
-  background:none;border:none;outline:none;color:var(--text);
-  border-bottom:2px solid transparent;padding:2px 4px;margin:-2px -4px;
-  border-radius:6px;transition:border-color .15s,background .15s;
-  min-width:0;width:100%;font-family:inherit;
-}
-.art-title-input:hover{background:var(--surface2)}
-.art-title-input:focus{border-bottom-color:var(--accent);background:var(--surface2)}
-.btn-expand-title{flex-shrink:0;background:none;border:none;color:var(--muted);
-  cursor:pointer;font-size:17px;padding:6px;border-radius:7px;line-height:1;
-  display:flex;align-items:center;justify-content:center;transition:.15s}
-.btn-expand-title:hover{background:var(--surface2);color:var(--text)}
-.title-popover{display:none;position:absolute;top:calc(100% + 6px);left:0;
-  max-width:min(560px,90vw);background:var(--sidebar);border:1px solid var(--border);
-  border-radius:10px;padding:14px 18px;font-size:var(--fs-lg);font-weight:700;
-  line-height:1.4;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.5);
-  z-index:150;word-break:break-word;white-space:normal}
-.title-popover.on{display:block}
-.word-count{font-size:15px;color:#d1d5ec;white-space:nowrap;flex-shrink:0;
-  padding:5px 10px;border-radius:7px;background:var(--surface);display:flex;
-  align-items:center;gap:5px}
 .save-status{font-size:13px;color:var(--dim);display:flex;align-items:center;
   gap:5px;opacity:0;transition:opacity .3s;flex-shrink:0;white-space:nowrap}
 .save-status.on{opacity:1}
@@ -502,9 +473,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     <button class="tab on" id="tEdit" onclick="swTab('edit')">✏️ Soạn thảo</button>
     <button class="tab"    id="tPrev" onclick="swTab('prev')">👁 Xem trước</button>
   </div>
-  <div class="hdr-actions" id="hdrActions" style="display:none">
-    <button class="btn-new-art" id="btnNewArt" title="Tạo bài viết mới (cùng thư mục)" onclick="newArtSameFolder()">＋</button>
-  </div>
 </header>
 
 <div class="layout">
@@ -539,14 +507,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
     <div class="editor" id="ed" style="display:none">
       <div class="ed-top">
-        <div class="title-wrap" id="titleWrap">
-          <input class="art-title-input" id="artTitle" placeholder="Tên bài viết..." autocomplete="off"
-            oninput="onArtTitleInput()" onblur="onArtTitleBlur()" onkeydown="onArtTitleKey(event)">
-          <button class="btn-expand-title" id="btnExpandTitle" type="button"
-            title="Xem đầy đủ tiêu đề" onclick="toggleTitlePopover(event)">⤢</button>
-          <div class="title-popover" id="titlePopover"></div>
-        </div>
-        <div class="word-count" id="wordCount" title="Số từ trong bài viết">📝 0 từ</div>
+        <div class="art-title" id="artTitle"></div>
         <div class="save-status" id="saveStatus"><span class="save-dot"></span>Đã lưu tự động</div>
       </div>
 
@@ -839,7 +800,6 @@ function loadFromLS(){
 
 let _saveTimer=null,_statusTimer=null;
 function scheduleAutoSave(){
-  updateWordCount();
   clearTimeout(_saveTimer);
   _saveTimer=setTimeout(()=>{flushContent();saveToLS();showSaveStatus();},800);
 }
@@ -923,11 +883,10 @@ function togFolder(fid,e){
 function startMkFolder(){
   const tree=document.getElementById('tree');
   const tmp=document.createElement('div');tmp.className='folder-wrap';
-  const defName=_nextFolderName();
   tmp.innerHTML=`<div class="folder-hdr"><span class="ftoggle"> </span><span class="ficon">📁</span>
-    <input class="fname-inp" id="nfi" placeholder="Tên thư mục mới..." autocomplete="off" value="${defName}"></div>`;
+    <input class="fname-inp" id="nfi" placeholder="Tên thư mục mới..." autocomplete="off"></div>`;
   tree.appendChild(tmp);
-  const inp=tmp.querySelector('#nfi');inp.focus();inp.select();
+  const inp=tmp.querySelector('#nfi');inp.focus();
   let committed=false;
   function doCommit(){if(committed)return;committed=true;commitMkF(inp.value.trim());}
   inp.addEventListener('keydown',e=>{
@@ -976,12 +935,11 @@ function startMkArt(fid){
   const f=D.folders.find(x=>x.id===fid);
   kids.innerHTML='';
   if(f&&f.articles)for(const a of f.articles)kids.appendChild(mkArtEl(f,a));
-  const defName=_nextArtName(fid);
   const tmp=document.createElement('div');tmp.className='art-item';
   tmp.innerHTML=`<span class="aicon">📄</span>
-    <input class="aname-inp" id="nai" placeholder="Tên bài viết mới..." autocomplete="off" value="${defName}">`;
+    <input class="aname-inp" id="nai" placeholder="Tên bài viết mới..." autocomplete="off">`;
   kids.appendChild(tmp);
-  const inp=tmp.querySelector('#nai');inp.focus();inp.select();
+  const inp=tmp.querySelector('#nai');inp.focus();
   let committed=false;
   const go=()=>{
     if(committed)return;committed=true;
@@ -1008,7 +966,7 @@ function startRenA(fid,aid){
   const go=()=>{
     if(committed)return;committed=true;
     const n=inp.value.trim();
-    if(n&&n!==a.name){a.name=n;if(selA===aid){if(curTab==='prev')mkPreview();else document.getElementById('artTitle').value=n;}saveToLS();toast('✏️ Đã đổi tên bài viết')}
+    if(n&&n!==a.name){a.name=n;if(selA===aid){if(curTab==='prev')mkPreview();else document.getElementById('artTitle').textContent=n;}saveToLS();toast('✏️ Đã đổi tên bài viết')}
     render();
   };
   inp.addEventListener('keydown',e=>{
@@ -1038,9 +996,7 @@ function selArt(fid,aid){
   const f=D.folders.find(x=>x.id===fid);
   const a=f?.articles?.find(x=>x.id===aid);if(!a)return;
   showEd(true);
-  document.getElementById('artTitle').value=a.name;
-  const titlePop=document.getElementById('titlePopover');
-  if(titlePop)titlePop.classList.remove('on');
+  document.getElementById('artTitle').textContent=a.name;
   const ta=document.getElementById('ta');
   ta.innerHTML=a.content||'';
   // Restore editor base style (cỡ chữ, giãn dòng mặc định)
@@ -1056,7 +1012,6 @@ function selArt(fid,aid){
   if(!dynSt){dynSt=document.createElement('style');dynSt.id='dynParaStyle';document.head.appendChild(dynSt);}
   dynSt.textContent=a.dynParaStyle||'';
   normalizeBlocks();
-  updateWordCount();
   // place cursor at end
   ta.focus();
   const range=document.createRange();range.selectNodeContents(ta);range.collapse(false);
@@ -1065,109 +1020,10 @@ function selArt(fid,aid){
   render();
   if(window.innerWidth<=768)closeSB();
 }
-function onArtTitleInput(){
-  // Live update tên bài viết trong data
-  const f=D.folders.find(x=>x.id===selF);
-  const a=f?.articles?.find(x=>x.id===selA);
-  if(!a)return;
-  a.name=document.getElementById('artTitle').value;
-  const pop=document.getElementById('titlePopover');
-  if(pop&&pop.classList.contains('on'))pop.textContent=a.name;
-  scheduleAutoSave();
-}
-function onArtTitleBlur(){
-  const f=D.folders.find(x=>x.id===selF);
-  const a=f?.articles?.find(x=>x.id===selA);
-  if(!a)return;
-  const val=document.getElementById('artTitle').value.trim();
-  if(!val){
-    // Không để trống — khôi phục tên cũ
-    document.getElementById('artTitle').value=a.name;
-    return;
-  }
-  if(a.name!==val){a.name=val;saveToLS();render();toast('✏️ Đã đổi tên bài viết');}
-}
-function onArtTitleKey(e){
-  if(e.key==='Enter'){e.preventDefault();document.getElementById('artTitle').blur();}
-  if(e.key==='Escape'){
-    const f=D.folders.find(x=>x.id===selF);
-    const a=f?.articles?.find(x=>x.id===selA);
-    if(a)document.getElementById('artTitle').value=a.name;
-    document.getElementById('artTitle').blur();
-  }
-}
-
-function _nextFolderName(){
-  const names=new Set(D.folders.map(f=>f.name));
-  for(let i=1;i<999;i++){const n=`Thư mục ${i}`;if(!names.has(n))return n;}
-  return `Thư mục ${Date.now()}`;
-}
-function _nextArtName(fid){
-  const f=D.folders.find(x=>x.id===fid);
-  const names=new Set((f?.articles||[]).map(a=>a.name));
-  for(let i=1;i<999;i++){const n=`Bài viết ${i}`;if(!names.has(n))return n;}
-  return `Bài viết ${Date.now()}`;
-}
-
-// ════════════════════ NEW ARTICLE (HEADER BUTTON) ════════════════════
-function newArtSameFolder(){
-  if(!selF){toast('⚠️ Chưa chọn bài viết nào','var(--warn)');return;}
-  const f=D.folders.find(x=>x.id===selF);
-  if(!f)return;
-  const defName=_nextArtName(f.id);
-  const a={id:uid(),name:defName,content:''};
-  if(!f.articles)f.articles=[];
-  f.articles.push(a);
-  open.add(f.id);
-  selArt(f.id,a.id);
-  saveToLS();
-  toast(`📄 Đã tạo bài "${defName}" trong "${f.name}"`);
-}
-
-// ════════════════════ TITLE POPOVER (XEM ĐẦY ĐỦ TIÊU ĐỀ) ════════════════════
-function toggleTitlePopover(e){
-  if(e)e.stopPropagation();
-  const pop=document.getElementById('titlePopover');
-  if(!pop)return;
-  if(pop.classList.contains('on')){pop.classList.remove('on');return;}
-  pop.textContent=document.getElementById('artTitle').value;
-  pop.classList.add('on');
-}
-document.addEventListener('click',e=>{
-  const pop=document.getElementById('titlePopover');
-  if(pop&&pop.classList.contains('on')&&!e.target.closest('#titleWrap')){
-    pop.classList.remove('on');
-  }
-});
-
-// ════════════════════ WORD COUNT ════════════════════
-function countWords(html){
-  const tmp=document.createElement('div');
-  tmp.innerHTML=html||'';
-  const text=tmp.textContent||tmp.innerText||'';
-  const words=text.trim().split(/\s+/).filter(Boolean);
-  return words.length;
-}
-function updateWordCount(){
-  const wc=document.getElementById('wordCount');
-  if(!wc)return;
-  if(!selA){wc.textContent='';return;}
-  const taEl=document.getElementById('ta');
-  const n=countWords(taEl?taEl.innerHTML:'');
-  wc.textContent=`📝 ${n} từ`;
-}
-
-
 function showEd(yes){
   document.getElementById('ph').style.display=yes?'none':'flex';
   document.getElementById('ed').style.display=yes?'flex':'none';
   document.getElementById('hdrTabs').style.display=yes?'flex':'none';
-  document.getElementById('hdrActions').style.display=yes?'flex':'none';
-  if(!yes){
-    document.getElementById('wordCount').textContent='';
-    const pop=document.getElementById('titlePopover');
-    if(pop)pop.classList.remove('on');
-  }
 }
 
 // ════════════════════ TABS ════════════════════
@@ -1181,7 +1037,7 @@ function swTab(t){
   else{
     const f=D.folders.find(x=>x.id===selF);
     const a=f?.articles?.find(x=>x.id===selA);
-    document.getElementById('artTitle').value=a?a.name:'';
+    document.getElementById('artTitle').textContent=a?a.name:'';
     document.getElementById('ta').focus();
   }
 }
@@ -1207,7 +1063,7 @@ function mkPreview(){
   const words=txt.trim()?txt.trim().split(/\s+/).length:0;
   const f=D.folders.find(x=>x.id===selF);
   const a=f?.articles?.find(x=>x.id===selA);
-  document.getElementById('artTitle').value=a?a.name:'';
+  document.getElementById('artTitle').textContent=a?`${a.name} (${words.toLocaleString('vi')} từ)`:'';
 }
 
 // ════════════════════ WYSIWYG COMMANDS ════════════════════
@@ -1664,7 +1520,6 @@ const EMOJI_DATA={
   '🏠 Nơi chốn':['🏠','🏡','🏢','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🏭','🏯','🏰','💒','🗼','🗽','⛪','🕌','🛕','🕍','⛩️','🗾','🎑','🏞️','🌅','🌄','🌠','🎇','🎆','🌇','🌆','🏙️','🌃','🌌','🌉','🌁'],
   '💡 Vật phẩm':['💡','🔦','🕯️','💰','💴','💵','💶','💷','💸','💳','🪙','💹','📈','📉','📊','📋','📌','📍','📎','🖇️','📏','📐','✂️','🗃️','🗄️','🗑️','🔒','🔓','🔏','🔐','🔑','🗝️','🔨','🪓','⛏️','⚒️','🛠️','🗡️','⚔️','🔫','🛡️','🪚','🔧','🪛','🔩','⚙️','🗜️','⚖️','🪝','🔗','⛓️','🪤','🧲','🔭','🔬','💊','💉','🩺','🩹','🩻','🩼','💄','🪞','🧴','🧹','🧺','🧻','🧷','🧼','🫧','🪥','🧽','🪣','🧯','🛒'],
   '✨ Ký hiệu':['✨','⭐','🌟','💫','⚡','🔥','❄️','🌈','☀️','🌙','🌊','🌀','🌪️','🌫️','🌈','♻️','✅','❌','❎','⭕','🚫','💯','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔶','🔷','🔸','🔹','🔺','🔻','💠','🔘','🔲','🔳','▪️','▫️','◾','◽','◼️','◻️','⬛','⬜','🟥','🟧','🟨','🟩','🟦','🟪','⬛','⬜'],
-  '📱 Điện thoại':['📱','📲','📵','📴','☎️','📞','📟','📠','💬','💭','🗨️','🗯️','📩','📨','📧','📤','📥','📦','📫','📪','📬','📭','📮','🗳️','✏️','✒️','🖊️','🖋️','📝','💼','📁','📂','📅','📆','📇','📈','📉','📊','📋','📌','📍','📎','🖇️','📏','📐','📓','📔','📒','📕','📗','📘','📙','📚','📖','🔖','🏷️','💾','💿','📀','📼','📷','📸','📹','🎥','📽️','🎞️','📞','🔋','🔌','💻','🖥️','🖨️','⌨️','🖱️','🖲️','💾','📡','🔭','🔬','🩺','🔩','⚙️','🧲','💡','🔦','🕯️','💰','🪙','💳','💸'],
 };
 
 let currentEmojiCat=Object.keys(EMOJI_DATA)[0];
@@ -2141,55 +1996,12 @@ ta.addEventListener('focus',()=>{try{document.execCommand('defaultParagraphSepar
 ta.addEventListener('paste',e=>{
   e.preventDefault();
   const text=(e.clipboardData.getData('text/plain')||'').trim();
-
-  // Nếu paste đúng 1 URL ảnh → chèn <img>
+  // If the pasted content is just a link to an image, show the image instead of the raw link
   const imgUrlRe=/^https?:\/\/\S+\.(jpg|jpeg|jfif|png|gif|webp|svg|bmp|avif|ico)(\?[^\s]*)?$/i;
   if(imgUrlRe.test(text)){
     insertImageFromUrl(text);
     return;
   }
-
-  // Nếu paste đúng 1 URL (không phải ảnh) → chèn <a href>
-  const singleUrlRe=/^https?:\/\/[^\s]{4,}$/i;
-  if(singleUrlRe.test(text)){
-    const a=document.createElement('a');
-    a.href=text;a.textContent=text;a.target='_blank';a.rel='noopener noreferrer';
-    const sel=window.getSelection();
-    let range;
-    if(sel&&sel.rangeCount&&ta.contains(sel.getRangeAt(0).commonAncestorContainer)){
-      range=sel.getRangeAt(0);
-    } else {
-      range=document.createRange();range.selectNodeContents(ta);range.collapse(false);
-    }
-    range.deleteContents();range.insertNode(a);
-    range.setStartAfter(a);range.collapse(true);
-    sel.removeAllRanges();sel.addRange(range);
-    ta.focus();scheduleAutoSave();
-    return;
-  }
-
-  // Text hỗn hợp hoặc nhiều dòng — tự động linkify URLs trong đó
-  const urlInTextRe=/https?:\/\/[^\s<>"']+/gi;
-  if(urlInTextRe.test(text)){
-    // Build HTML: mỗi dòng thành <p>, URL trong dòng wrap thành <a>
-    const html=text.split('\n').map(line=>{
-      const escaped=line
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;');
-      const linked=escaped.replace(/https?:\/\/[^\s<>"'&]+/gi,url=>{
-        // Decode lại & đã escape trong URL
-        const rawUrl=url.replace(/&amp;/g,'&');
-        return `<a href="${rawUrl}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-      });
-      return `<p>${linked||'<br>'}</p>`;
-    }).join('');
-    document.execCommand('insertHTML',false,html);
-    scheduleAutoSave();
-    return;
-  }
-
-  // Không có URL — paste thường
   const html=e.clipboardData.getData('text/html');
   document.execCommand('insertHTML',false,html||text.replace(/\n/g,'<br>'));
   scheduleAutoSave();

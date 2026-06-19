@@ -58,7 +58,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .tree{flex:1;overflow-y:auto;padding:6px 0}
 .tree::-webkit-scrollbar{width:5px}
 .tree::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-.folder-wrap{margin:2px 4px}
+.folder-wrap{margin:2px 6px}
 .folder-hdr{display:flex;align-items:center;padding:9px 10px;border-radius:9px;
   cursor:pointer;gap:6px;min-height:48px}
 .folder-hdr:hover{background:var(--hover)}
@@ -78,8 +78,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .abt:hover{background:var(--surface);color:var(--text)}
 .abt.d:hover{background:rgba(243,139,168,.2);color:var(--danger)}
 .abt.a:hover{background:rgba(137,180,250,.2);color:var(--accent)}
-/* Lề phân cấp rõ hơn: folder-kids thụt sâu + đường kẻ dọc */
-.folder-kids{padding-left:18px;border-left:1.5px solid var(--border);margin-left:19px}
+.folder-kids{padding-left:22px}
 .art-item{display:flex;align-items:center;padding:8px 10px;margin:1px 0;
   border-radius:9px;cursor:pointer;gap:6px;min-height:44px}
 .art-item:hover{background:var(--hover)}
@@ -87,14 +86,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .aicon{font-size:16px;flex-shrink:0;color:var(--muted)}
 .aname{flex:1;font-size:var(--fs-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .empty-hint{padding:8px 10px;font-size:13px;color:var(--dim);font-style:italic}
-/* Nút thu gọn / mở rộng tất cả */
-.sb-top-row{display:flex;gap:6px;margin-bottom:8px;align-items:center}
-.btn-toc{flex:1}
-.btn-collapse-all{flex-shrink:0;background:var(--surface);border:1.5px solid var(--border);
-  color:var(--dim);border-radius:9px;cursor:pointer;padding:0 10px;height:40px;font-size:16px;
-  display:flex;align-items:center;justify-content:center;transition:.15s;white-space:nowrap;gap:4px;
-  font-size:13px}
-.btn-collapse-all:hover{background:var(--hover);color:var(--fg);border-color:var(--accent)}
 
 /* ── SIDEBAR FOOTER ── */
 .sb-foot{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
@@ -595,12 +586,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;
 
   <aside class="sidebar sb-hidden" id="sidebar">
     <div class="sb-top">
-      <div class="sb-top-row">
-        <button class="btn-toc" id="btnToc" onclick="toggleToc()">📑 Mục Lục</button>
-        <button class="btn-collapse-all" id="btnCollapseAll" onclick="toggleAllFolders()" title="Thu gọn / Mở rộng tất cả thư mục">
-          <span id="collapseIcon">⊟</span><span id="collapseLabel">Thu gọn</span>
-        </button>
-      </div>
+      <button class="btn-toc" id="btnToc" onclick="toggleToc()">📑 Mục Lục</button>
       <button class="btn-add-folder" onclick="startMkFolder()">📁 + Thêm Thư Mục</button>
     </div>
     <div class="tree" id="tree"></div>
@@ -642,8 +628,8 @@ kbd{display:inline-flex;align-items:center;justify-content:center;
       <div class="panel" id="pEdit">
         <div class="md-bar" id="toolbar">
           <!-- Undo/Redo -->
-          <button class="tbtn" title="Hoàn tác (Ctrl+Z)"   onmousedown="event.preventDefault()" onclick="histUndo()">↩</button>
-          <button class="tbtn" title="Làm lại (Ctrl+Y)"    onmousedown="event.preventDefault()" onclick="histRedo()">↪</button>
+          <button class="tbtn" title="Hoàn tác (Ctrl+Z)"   onmousedown="event.preventDefault()" onclick="cmd('undo')">↩</button>
+          <button class="tbtn" title="Làm lại (Ctrl+Y)"    onmousedown="event.preventDefault()" onclick="cmd('redo')">↪</button>
           <div class="tsep"></div>
           <!-- Text format -->
           <button class="tbtn" id="btn-bold"      title="Đậm (Ctrl+B)"       onmousedown="event.preventDefault()" onclick="cmd('bold')"><b>B</b></button>
@@ -961,13 +947,11 @@ function render(){
     tree.innerHTML=`<div style="padding:28px 16px;text-align:center;color:var(--dim);font-size:15px;line-height:1.7">
       Chưa có thư mục nào.<br>Nhấn <b style="color:var(--accent)">+ Thêm Thư Mục</b><br>để bắt đầu.</div>`;
     if(tocOpen)renderToc();
-    _updateCollapseBtn();
     return;
   }
   tree.innerHTML='';
   for(const f of D.folders)tree.appendChild(mkFolderEl(f));
   if(tocOpen)renderToc();
-  _updateCollapseBtn();
 }
 function mkFolderEl(f){
   const isOpen=open.has(f.id);
@@ -1158,34 +1142,7 @@ function addArtDrag(el,f,a){
 function togFolder(fid,e){
   if(e.target.closest('.acts'))return;
   if(e.target.tagName==='INPUT')return;
-  open.has(fid)?open.delete(fid):open.add(fid);
-  render();
-  _updateCollapseBtn();
-}
-
-// Thu gọn / mở rộng tất cả thư mục
-function toggleAllFolders(){
-  const allOpen=D.folders.every(f=>open.has(f.id));
-  if(allOpen){
-    // Tất cả đang mở → thu gọn tất cả
-    open.clear();
-    // Giữ thư mục của bài đang chọn mở để không mất context
-    if(selF)open.add(selF);
-  } else {
-    // Có ít nhất 1 đóng → mở tất cả
-    D.folders.forEach(f=>open.add(f.id));
-  }
-  render();
-  _updateCollapseBtn();
-}
-
-function _updateCollapseBtn(){
-  const icon=document.getElementById('collapseIcon');
-  const label=document.getElementById('collapseLabel');
-  if(!icon||!label)return;
-  const allOpen=D.folders.length>0&&D.folders.every(f=>open.has(f.id));
-  icon.textContent=allOpen?'⊟':'⊞';
-  label.textContent=allOpen?'Thu gọn':'Mở rộng';
+  open.has(fid)?open.delete(fid):open.add(fid);render();
 }
 function startMkFolder(){
   const tree=document.getElementById('tree');
@@ -1331,7 +1288,6 @@ function selArt(fid,aid){
   if(curTab==='prev')mkPreview();
   render();
   if(window.innerWidth<=768)closeSB();
-  _histReset(); // reset history stack cho bài mới
 }
 function onArtTitleInput(){
   // Live update tên bài viết trong data
@@ -1480,10 +1436,6 @@ function mkPreview(){
 
 // ════════════════════ WYSIWYG COMMANDS ════════════════════
 function cmd(command){
-  // undo/redo được điều phối bởi histUndo/histRedo, không qua đây
-  if(command==='undo'){histUndo();return;}
-  if(command==='redo'){histRedo();return;}
-  _snap(); // snapshot trước khi thay đổi
   document.execCommand('styleWithCSS',false,true);
   document.execCommand(command,false,null);
   document.getElementById('ta').focus();
@@ -1491,7 +1443,6 @@ function cmd(command){
   updateToolbarState();
 }
 function fmtBlock(tag){
-  _snap();
   document.execCommand('styleWithCSS',false,true);
   document.execCommand('formatBlock',false,tag);
   document.getElementById('ta').focus();
@@ -1541,7 +1492,6 @@ function toggleColorPicker(e){
   document.getElementById('colorSwatches').classList.toggle('on');
 }
 function applyColor(hex){
-  _snap();
   document.getElementById('colorBar').style.background=hex;
   document.getElementById('colorSwatches').classList.remove('on');
   // restore selection
@@ -1642,7 +1592,6 @@ function applyFontSize(size){
 
 function applyFont(font){
   if(!font)return;
-  _snap();
   restoreRange();
   const sel=window.getSelection();
   if(!sel||sel.isCollapsed){toast('⚠️ Hãy bôi đen văn bản trước','var(--warn)');return;}
@@ -1652,97 +1601,34 @@ function applyFont(font){
   scheduleAutoSave();
 }
 
-// ════════════════════ UNIFIED UNDO / REDO HISTORY ════════════════════
-// Thay thế toàn bộ undo của browser (execCommand) + spacing stack cũ
-// bằng một history duy nhất cho mọi thao tác: gõ chữ, định dạng, spacing...
-const _hist={stack:[],idx:-1,max:200};
-let _histLock=false;   // tránh snap khi đang restore
-let _typingTimer=null; // debounce snap khi gõ
+// ════════════════════ SPACING UNDO STACK ════════════════════
+// applyLineSpacing / applyParaSpacing sửa style trực tiếp trên DOM,
+// không đi qua execCommand nên browser không track được.
+// Ta tự quản lý một mini-stack để Ctrl+Z hoạt động đúng.
+const _spacingUndo=[];
+const _SPACING_UNDO_MAX=100;
 
-// Lưu vị trí con trỏ dưới dạng offset ký tự từ đầu editor
-function _saveCaret(ta){
-  try{
-    const sel=window.getSelection();
-    if(!sel||!sel.rangeCount)return -1;
-    const r=sel.getRangeAt(0).cloneRange();
-    r.selectNodeContents(ta);r.setEnd(sel.getRangeAt(0).startContainer,sel.getRangeAt(0).startOffset);
-    return r.toString().length;
-  }catch(e){return -1;}
-}
-function _restoreCaret(ta,offset){
-  if(offset<0)return;
-  try{
-    const walker=document.createTreeWalker(ta,NodeFilter.SHOW_TEXT);
-    let node,chars=0;
-    while((node=walker.nextNode())){
-      if(chars+node.length>=offset){
-        const r=document.createRange();r.setStart(node,offset-chars);r.collapse(true);
-        const sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);return;
-      }
-      chars+=node.length;
-    }
-  }catch(e){}
-  // fallback: cuối editor
-  try{const r=document.createRange();r.selectNodeContents(ta);r.collapse(false);
-    window.getSelection().removeAllRanges();window.getSelection().addRange(r);}catch(e){}
-}
-
-function _snap(){
-  if(_histLock)return;
+function _snapSpacing(){
   const ta=document.getElementById('ta');
   const dyn=document.getElementById('dynParaStyle');
-  const snap={
+  _spacingUndo.push({
     html:ta.innerHTML,
     taStyle:ta.getAttribute('style')||'',
-    dynPara:dyn?dyn.textContent:'',
-    caret:_saveCaret(ta)
-  };
-  // Bỏ qua nếu giống snap cuối (tránh duplicate)
-  const last=_hist.stack[_hist.idx];
-  if(last&&last.html===snap.html&&last.taStyle===snap.taStyle&&last.dynPara===snap.dynPara)return;
-  // Cắt bỏ redo branch khi có action mới
-  _hist.stack=_hist.stack.slice(0,_hist.idx+1);
-  _hist.stack.push(snap);
-  if(_hist.stack.length>_hist.max)_hist.stack.shift();
-  _hist.idx=_hist.stack.length-1;
+    dynPara:dyn?dyn.textContent:''
+  });
+  if(_spacingUndo.length>_SPACING_UNDO_MAX)_spacingUndo.shift();
 }
 
-// Debounce cho sự kiện gõ phím (mỗi đợt gõ liên tục = 1 bước undo)
-function _snapTyping(){
-  clearTimeout(_typingTimer);
-  _typingTimer=setTimeout(_snap,600);
-}
-
-function _applySnap(snap){
-  _histLock=true;
+function _restoreSpacingSnap(snap){
   const ta=document.getElementById('ta');
   ta.innerHTML=snap.html;
-  if(snap.taStyle)ta.setAttribute('style',snap.taStyle);else ta.removeAttribute('style');
+  if(snap.taStyle)ta.setAttribute('style',snap.taStyle);
+  else ta.removeAttribute('style');
   let dyn=document.getElementById('dynParaStyle');
   if(!dyn){dyn=document.createElement('style');dyn.id='dynParaStyle';document.head.appendChild(dyn);}
   dyn.textContent=snap.dynPara;
-  _restoreCaret(ta,snap.caret);
   updateWordCount();
-  flushContent();saveToLS();
-  _histLock=false;
-}
-
-function histUndo(){
-  if(_hist.idx<=0){toast('⚠️ Không còn gì để hoàn tác','var(--warn)');return;}
-  _hist.idx--;
-  _applySnap(_hist.stack[_hist.idx]);
-  toast('↩ Hoàn tác');
-}
-function histRedo(){
-  if(_hist.idx>=_hist.stack.length-1){toast('⚠️ Không còn gì để làm lại','var(--warn)');return;}
-  _hist.idx++;
-  _applySnap(_hist.stack[_hist.idx]);
-  toast('↪ Làm lại');
-}
-// Reset history khi chuyển bài viết
-function _histReset(){
-  _hist.stack=[];_hist.idx=-1;
-  setTimeout(_snap,50); // snap trạng thái ban đầu của bài mới
+  scheduleAutoSave();
 }
 
 // ════════════════════ LINE SPACING / PARAGRAPH SPACING ════════════════════
@@ -1800,7 +1686,7 @@ function getSelectedBlocks(){
 function applyLineSpacing(value){
   if(!value)return;
   restoreRange();
-  _snap(); // lưu trạng thái trước khi thay đổi
+  _snapSpacing(); // lưu trạng thái trước khi thay đổi
   const taEl=document.getElementById('ta');
   normalizeBlocks();
   restoreRange();
@@ -1820,7 +1706,7 @@ function applyLineSpacing(value){
 function applyParaSpacing(value){
   if(!value)return;
   restoreRange();
-  _snap(); // lưu trạng thái trước khi thay đổi
+  _snapSpacing(); // lưu trạng thái trước khi thay đổi
   const taEl=document.getElementById('ta');
   normalizeBlocks();
   restoreRange();
@@ -1875,7 +1761,6 @@ function openLinkModal(){
 function closeLinkModal(){document.getElementById('linkModal').classList.remove('on')}
 
 function insertLink(){
-  _snap();
   const url=document.getElementById('linkUrl').value.trim();
   const text=document.getElementById('linkText').value.trim();
   if(!url){toast('⚠️ Vui lòng nhập URL','var(--warn)');return;}
@@ -1904,7 +1789,6 @@ function insertLink(){
 }
 
 function removeLink(){
-  _snap();
   document.getElementById('ta').focus();
   document.execCommand('unlink',false,null);
   scheduleAutoSave();
@@ -1930,7 +1814,6 @@ function updateTblPreview(){
     `| ${hdr} |\n| ${sep} |\n`+Array(r).fill(`| ${row} |`).join('\n');
 }
 function insertTable(){
-  _snap();
   const r=Math.max(1,Math.min(20,+document.getElementById('tblRows').value||3));
   const c=Math.max(1,Math.min(10,+document.getElementById('tblCols').value||3));
   const ths=Array.from({length:c},(_,i)=>`<th>Cột ${i+1}</th>`).join('');
@@ -2044,7 +1927,6 @@ function toggleDtPicker(e){
   }
 }
 function insertDateTime(type){
-  _snap();
   document.getElementById('dtPicker').classList.remove('on');
   const now=new Date();
   const days=['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
@@ -2070,7 +1952,6 @@ function insertDateTime(type){
 
 // ════════════════════ CHÈN DÒNG KẺ & EMOJI ════════════════════
 function insertHR(){
-  _snap();
   const ta=document.getElementById('ta');
   ta.focus();
   document.execCommand('insertHTML',false,'<hr>');
@@ -2554,7 +2435,6 @@ function closeSB(){
 
 // ════════════════════ EDITOR EVENTS ════════════════════
 const ta=document.getElementById('ta');
-ta.addEventListener('input',()=>{if(!_histLock){_snapTyping();scheduleAutoSave();}});
 ta.addEventListener('input',scheduleAutoSave);
 ta.addEventListener('keyup',updateToolbarState);
 ta.addEventListener('mouseup',updateToolbarState);
@@ -2851,13 +2731,17 @@ ta.addEventListener('keydown',e=>{
   const alt=e.altKey;
   const k=e.key;
 
-  // Ctrl+Z — undo thống nhất (gõ chữ + định dạng + spacing)
+  // Ctrl+Z — undo: kiểm tra spacing-stack trước, rồi mới để browser xử lý
   if(ctrl&&!shift&&!alt&&(k==='z'||k==='Z')){
-    e.preventDefault();histUndo();return;}
-
-  // Ctrl+Y — redo
-  if(ctrl&&!shift&&!alt&&(k==='y'||k==='Y')){
-    e.preventDefault();histRedo();return;}
+    if(_spacingUndo.length){
+      e.preventDefault();
+      _restoreSpacingSnap(_spacingUndo.pop());
+      toast('↩ Hoàn tác giãn dòng/đoạn');
+      return;
+    }
+    // Không có snap → để browser undo bình thường (không preventDefault)
+    return;
+  }
 
   // Ctrl+S — lưu thủ công
   if(ctrl&&!shift&&!alt&&k==='s'){

@@ -489,11 +489,14 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   box-shadow:0 12px 40px rgba(0,0,0,.6);
 }
 #outlinePicker.on{display:flex!important}
-.outline-toggle-ic{
-  margin-left:auto;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  width:26px;height:26px;border-radius:7px;background:none;border:1px solid transparent;
-  color:var(--muted);cursor:pointer;font-size:14px;transition:.14s}
-.outline-toggle-ic:hover{background:var(--surface);border-color:var(--border);color:var(--text)}
+.outline-actions{display:flex;gap:6px;margin-bottom:8px}
+.outline-act-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+  background:var(--surface);border:1px solid var(--border);color:var(--muted);
+  padding:9px 10px;border-radius:9px;font-size:12.5px;font-weight:600;
+  cursor:pointer;transition:.14s;white-space:nowrap}
+.outline-act-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--accent)}
+.outline-act-btn .oa-ic{font-size:14px}
 .outline-empty{color:var(--dim);font-size:var(--fs-sm);padding:14px 6px;text-align:center;font-style:italic}
 .outline-item{
   display:flex;align-items:center;gap:9px;width:100%;
@@ -707,9 +710,9 @@ kbd{display:inline-flex;align-items:center;justify-content:center;
         <div class="color-wrap" id="outlineWrap" style="position:relative;flex-shrink:0">
           <button class="tbtn" title="Cấu trúc văn bản (H1/H2/H3)" onmousedown="event.preventDefault()" onclick="toggleOutlinePicker(event)">🗂️ Cấu trúc</button>
           <div id="outlinePicker">
-            <div class="dt-picker-title">
-              <span>🗂️ Cấu trúc văn bản</span>
-              <button type="button" class="outline-toggle-ic" id="outlineToggleBtn" title="Thu gọn hết" onmousedown="event.preventDefault()" onclick="event.stopPropagation();toggleAllHeadings()">⬆️</button>
+            <div class="dt-picker-title">🗂️ Cấu trúc văn bản</div>
+            <div class="outline-actions">
+              <button type="button" class="outline-act-btn" id="outlineToggleBtn" onmousedown="event.preventDefault()" onclick="event.stopPropagation();toggleAllHeadings()"><span class="oa-ic">⬆️</span><span class="oa-lb">Thu gọn hết</span></button>
             </div>
             <div id="outlineList"></div>
           </div>
@@ -1722,15 +1725,15 @@ function toggleAllHeadings(){
   updateOutlineToggleBtn();
 }
 
-// Cập nhật icon/tooltip của nút toggle theo trạng thái hiện tại của heading
+// Cập nhật icon/label của nút toggle theo trạng thái hiện tại của heading
 function updateOutlineToggleBtn(){
   const isLiveEditor=curTab!=='prev';
   const container=isLiveEditor?document.getElementById('ta'):document.getElementById('prevOut');
   const btn=document.getElementById('outlineToggleBtn');
   if(!container||!btn)return;
   const hasCollapsed=container.querySelector(':scope > h1.h-collapsed, :scope > h2.h-collapsed, :scope > h3.h-collapsed');
-  btn.textContent=hasCollapsed?'⬇️':'⬆️';
-  btn.title=hasCollapsed?'Mở rộng hết':'Thu gọn hết';
+  btn.querySelector('.oa-ic').textContent=hasCollapsed?'⬇️':'⬆️';
+  btn.querySelector('.oa-lb').textContent=hasCollapsed?'Mở rộng hết':'Thu gọn hết';
 }
 
 // ── Định vị popover sao cho luôn nằm gọn trong khung nhìn ──
@@ -1792,7 +1795,7 @@ function buildOutlineList(){
     btn.className='outline-item lvl'+lvl;
     btn.title=h.textContent.trim()||'(Không có tiêu đề)';
     btn.onmousedown=ev=>ev.preventDefault();
-    btn.onclick=ev=>{ev.stopPropagation();jumpToHeading(h);};
+    btn.onclick=()=>jumpToHeading(h);
     const dot=document.createElement('span');
     dot.className='ol-dot';
     const label=document.createElement('span');
@@ -1829,11 +1832,9 @@ function expandAncestorsFor(target){
 }
 
 // Nhảy con trỏ tới 1 heading và cuộn nó vào giữa khung nhìn
-// (popup "Cấu trúc" KHÔNG tự đóng ở đây — chỉ đóng khi bấm ra ngoài popup)
 function jumpToHeading(h){
   expandAncestorsFor(h);
-  buildOutlineList();
-  updateOutlineToggleBtn();
+  document.getElementById('outlinePicker').classList.remove('on');
   const inPreview=h.parentElement&&h.parentElement.id==='prevOut';
   if(inPreview){
     h.scrollIntoView({behavior:'smooth',block:'center'});
@@ -3280,13 +3281,6 @@ ta.addEventListener('keydown',e=>{
   const shift=e.shiftKey;
   const alt=e.altKey;
   const k=e.key;
-
-  // Tab / Shift+Tab — thụt lề vào/ra (chặn hành vi mặc định là chuyển focus)
-  if(k==='Tab'&&!ctrl&&!alt){
-    e.preventDefault();
-    cmd(shift?'outdent':'indent');
-    return;
-  }
 
   // Ctrl+Z — undo thống nhất (gõ chữ + định dạng + spacing)
   if(ctrl&&!shift&&!alt&&(k==='z'||k==='Z')){

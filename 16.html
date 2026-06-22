@@ -632,56 +632,6 @@ kbd{display:inline-flex;align-items:center;justify-content:center;
   font-size:12px;color:var(--dim);text-align:center;flex-shrink:0}
 @media(max-width:500px){.sc-body{grid-template-columns:1fr;padding:14px 16px}
   .sc-hdr{padding:13px 16px}.sc-footer{padding:8px 16px}}
-/* ── SẮP XẾP SECTION MODAL ── */
-#sortModal{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.62);
-  display:flex;align-items:center;justify-content:center;opacity:0;
-  pointer-events:none;transition:opacity .18s}
-#sortModal.on{opacity:1;pointer-events:auto}
-.sort-box{background:var(--sidebar);border:1px solid var(--border);border-radius:16px;
-  width:min(600px,96vw);max-height:88vh;display:flex;flex-direction:column;
-  box-shadow:0 24px 72px rgba(0,0,0,.7);overflow:hidden}
-.sort-hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:16px 22px;border-bottom:1px solid var(--border);flex-shrink:0}
-.sort-hdr h3{margin:0;font-size:var(--fs);font-weight:700;color:var(--text)}
-.sort-close{background:none;border:none;color:var(--dim);font-size:18px;
-  cursor:pointer;padding:4px 8px;border-radius:7px;line-height:1}
-.sort-close:hover{color:var(--text);background:var(--surface)}
-.sort-hint{padding:9px 22px;font-size:13px;color:var(--dim);flex-shrink:0;
-  border-bottom:1px solid var(--border);background:rgba(137,180,250,.06);line-height:1.5}
-.sort-list{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:5px;
-  scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-.sort-list::-webkit-scrollbar{width:8px}
-.sort-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px}
-.sort-item{display:flex;align-items:center;gap:10px;padding:10px 14px;
-  background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
-  cursor:grab;user-select:none;transition:border-color .12s,background .12s,box-shadow .12s;
-  position:relative}
-.sort-item:active{cursor:grabbing}
-.sort-item:hover{border-color:var(--accent);background:var(--hover)}
-.sort-item.sort-dragging{opacity:.3;border-style:dashed;pointer-events:none}
-.sort-item.sort-over-top{box-shadow:0 -3px 0 0 var(--accent)!important;background:var(--selected);border-color:var(--accent)}
-.sort-item.sort-over-bot{box-shadow:0 3px 0 0 var(--accent)!important;background:var(--selected);border-color:var(--accent)}
-.sort-drag-icon{font-size:16px;color:var(--dim);flex-shrink:0;line-height:1;cursor:grab;
-  letter-spacing:-1px;opacity:.7}
-.sort-badge{flex-shrink:0;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;
-  letter-spacing:.4px;min-width:28px;text-align:center}
-.sort-badge.lvh1{background:rgba(137,180,250,.22);color:#89b4fa;border:1px solid rgba(137,180,250,.45)}
-.sort-badge.lvh2{background:rgba(166,227,161,.18);color:#a6e3a1;border:1px solid rgba(166,227,161,.35)}
-.sort-badge.lvh3{background:rgba(203,166,247,.18);color:#cba6f7;border:1px solid rgba(203,166,247,.32)}
-.sort-badge.lvh0{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
-.sort-texts{flex:1;overflow:hidden;min-width:0}
-.sort-label{font-size:var(--fs-sm);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-.sort-preview{font-size:12px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
-.sort-cnt{font-size:11px;color:var(--dim);flex-shrink:0;white-space:nowrap;min-width:40px;text-align:right}
-.sort-empty{text-align:center;color:var(--dim);font-style:italic;padding:48px 20px;font-size:var(--fs-sm)}
-.sort-footer{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0}
-.sort-btn-cancel{flex:1;padding:10px;background:var(--surface);border:1.5px solid var(--border);
-  color:var(--text);border-radius:9px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:.14s}
-.sort-btn-cancel:hover{background:var(--surface2)}
-.sort-btn-apply{flex:2;padding:10px;background:var(--accent);color:var(--bg);border:none;
-  border-radius:9px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;transition:.14s}
-.sort-btn-apply:hover{background:var(--accent2)}
-
 .drag-handle{cursor:grab;color:var(--dim);font-size:13px;flex-shrink:0;
   padding:0 2px;opacity:0;transition:opacity .15s;user-select:none;line-height:1;
   display:flex;align-items:center}
@@ -821,7 +771,6 @@ kbd{display:inline-flex;align-items:center;justify-content:center;
             <div id="outlineList"></div>
           </div>
         </div>
-        <button class="tbtn" id="btnSortSections" title="Sắp xếp H1/H2/H3 theo kéo thả" onmousedown="event.preventDefault()" onclick="openSortModal()">⠿ Sắp xếp</button>
         <div class="word-count" id="wordCount" title="Số từ trong bài viết">📝 0 từ</div>
         <div class="save-status" id="saveStatus"><span class="save-dot"></span>Đã lưu tự động</div>
       </div>
@@ -3398,27 +3347,6 @@ ta.addEventListener('focus',updateToolbarState);
 // Make Enter consistently create <p> blocks (Firefox can default to <br>,
 // older Chrome to bare <div>) so line/paragraph spacing always has a block to target
 ta.addEventListener('focus',()=>{try{document.execCommand('defaultParagraphSeparator','p')}catch(e){}});
-// ── Override copy để đảm bảo link-btn-chip (contenteditable=false) được sao chép đúng ──
-// Trình duyệt đôi khi bỏ qua các node contenteditable=false khi serialize selection.
-// dùng range.cloneContents() để lấy đúng toàn bộ DOM fragment trong vùng bôi đen.
-ta.addEventListener('copy',e=>{
-  const sel=window.getSelection();
-  if(!sel||sel.rangeCount===0)return;
-  const range=sel.getRangeAt(0);
-  if(range.collapsed)return;
-  const frag=range.cloneContents();
-  const tmp=document.createElement('div');
-  tmp.appendChild(frag);
-  // Xoá các .h-toggle khỏi bản sao (không cần thiết trong clipboard)
-  tmp.querySelectorAll('.h-toggle').forEach(x=>x.remove());
-  const html=tmp.innerHTML;
-  const text=tmp.textContent||tmp.innerText||'';
-  if(!html)return;
-  e.preventDefault();
-  e.clipboardData.setData('text/html',html);
-  e.clipboardData.setData('text/plain',text);
-});
-
 // Prevent paste of rich content from outside — paste as plain+html
 ta.addEventListener('paste',e=>{
   e.preventDefault();
@@ -3790,194 +3718,6 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-// ════════════════════ SẮP XẾP SECTION (DRAG-DROP) ════════════════════
-
-let _sortSections = [];
-let _sortDragIdx = null;
-
-/**
- * Phân tích nội dung editor thành các section.
- * Mỗi section = 1 heading (H1/H2/H3) + tất cả phần tử liền sau đó
- * cho đến heading tiếp theo (bất kỳ cấp nào).
- * Nếu có nội dung trước heading đầu tiên → section cấp 0 "Đầu trang".
- */
-function parseDocumentSections() {
-  const ta = document.getElementById('ta');
-  if (!ta) return [];
-  const children = Array.from(ta.children);
-  const HL = { H1: 1, H2: 2, H3: 3 };
-  const sections = [];
-  let preamble = [];
-  let cur = null;
-
-  children.forEach(el => {
-    const lvl = HL[el.tagName];
-    if (lvl !== undefined) {
-      // Lưu section hiện tại hoặc preamble
-      if (cur) {
-        sections.push(cur);
-      } else if (preamble.length) {
-        sections.push({ level: 0, headingEl: null, contentEls: preamble, label: '(Nội dung đầu trang)' });
-        preamble = [];
-      }
-      // Lấy text heading (loại bỏ icon .h-toggle)
-      const tmp = el.cloneNode(true);
-      tmp.querySelectorAll('.h-toggle').forEach(x => x.remove());
-      const label = tmp.textContent.trim().replace(/\s+/g, ' ') || '(Không có tiêu đề)';
-      cur = { level: lvl, headingEl: el, contentEls: [], label };
-    } else {
-      if (cur) cur.contentEls.push(el);
-      else preamble.push(el);
-    }
-  });
-
-  if (cur) sections.push(cur);
-  else if (preamble.length) sections.push({ level: 0, headingEl: null, contentEls: preamble, label: '(Nội dung đầu trang)' });
-
-  return sections;
-}
-
-function _sortGetPreview(s) {
-  const tmp = document.createElement('div');
-  s.contentEls.forEach(el => {
-    const c = el.cloneNode(true);
-    c.querySelectorAll('.h-toggle').forEach(x => x.remove());
-    tmp.appendChild(c);
-  });
-  return (tmp.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 90);
-}
-
-function openSortModal() {
-  if (!selA) { toast('⚠️ Chưa mở bài viết nào', 'var(--warn)'); return; }
-  _sortSections = parseDocumentSections();
-  if (_sortSections.length === 0) {
-    toast('⚠️ Bài viết chưa có nội dung để sắp xếp', 'var(--warn)');
-    return;
-  }
-  _renderSortList();
-  document.getElementById('sortModal').classList.add('on');
-}
-
-function closeSortModal() {
-  document.getElementById('sortModal').classList.remove('on');
-}
-
-function _renderSortList() {
-  const list = document.getElementById('sortList');
-  if (!list) return;
-  list.innerHTML = '';
-
-  if (_sortSections.length === 0) {
-    list.innerHTML = '<div class="sort-empty">Không có section nào để sắp xếp.</div>';
-    return;
-  }
-
-  _sortSections.forEach((s, i) => {
-    const item = document.createElement('div');
-    item.className = 'sort-item';
-    item.draggable = true;
-    item.dataset.idx = String(i);
-
-    const badgeClass = 'lvh' + s.level;
-    const badgeText = s.level === 0 ? '—' : 'H' + s.level;
-    const preview = _sortGetPreview(s);
-    const cnt = s.contentEls.length;
-    // Thụt lề theo cấp heading
-    const pl = s.level > 1 ? (s.level - 1) * 20 : 0;
-
-    item.style.paddingLeft = (14 + pl) + 'px';
-    item.innerHTML =
-      '<span class="sort-drag-icon" title="Kéo để di chuyển">⠿</span>' +
-      '<span class="sort-badge ' + badgeClass + '">' + badgeText + '</span>' +
-      '<div class="sort-texts">' +
-        '<div class="sort-label">' + esc(s.label) + '</div>' +
-        (preview ? '<div class="sort-preview">' + esc(preview) + '</div>' : '') +
-      '</div>' +
-      '<span class="sort-cnt">' + (cnt > 0 ? cnt + ' khối' : '') + '</span>';
-
-    // ── Drag events ──
-    item.addEventListener('dragstart', ev => {
-      _sortDragIdx = i;
-      ev.dataTransfer.effectAllowed = 'move';
-      // Delay để trình duyệt kịp tạo ghost
-      requestAnimationFrame(() => item.classList.add('sort-dragging'));
-    });
-
-    item.addEventListener('dragend', () => {
-      item.classList.remove('sort-dragging');
-      list.querySelectorAll('.sort-item').forEach(x => {
-        x.classList.remove('sort-over-top', 'sort-over-bot');
-      });
-      _sortDragIdx = null;
-    });
-
-    item.addEventListener('dragover', ev => {
-      ev.preventDefault();
-      ev.dataTransfer.dropEffect = 'move';
-      if (_sortDragIdx === null || _sortDragIdx === i) return;
-      list.querySelectorAll('.sort-item').forEach(x => {
-        x.classList.remove('sort-over-top', 'sort-over-bot');
-      });
-      const rect = item.getBoundingClientRect();
-      if (ev.clientY < rect.top + rect.height / 2) {
-        item.classList.add('sort-over-top');
-      } else {
-        item.classList.add('sort-over-bot');
-      }
-    });
-
-    item.addEventListener('dragleave', ev => {
-      if (!item.contains(ev.relatedTarget)) {
-        item.classList.remove('sort-over-top', 'sort-over-bot');
-      }
-    });
-
-    item.addEventListener('drop', ev => {
-      ev.preventDefault();
-      if (_sortDragIdx === null) return;
-      const fromIdx = _sortDragIdx;
-      const toIdx = parseInt(item.dataset.idx);
-      if (fromIdx === toIdx) return;
-
-      const rect = item.getBoundingClientRect();
-      const insertAfter = ev.clientY >= rect.top + rect.height / 2;
-
-      // Xoá phần tử khỏi vị trí cũ
-      const [moved] = _sortSections.splice(fromIdx, 1);
-
-      // Tính vị trí chèn mới (sau khi đã splice)
-      let newIdx = fromIdx < toIdx ? toIdx - 1 : toIdx;
-      if (insertAfter) newIdx++;
-
-      _sortSections.splice(newIdx, 0, moved);
-      _sortDragIdx = null;
-      _renderSortList();
-    });
-
-    list.appendChild(item);
-  });
-}
-
-function applySortOrder() {
-  if (!_sortSections.length) return;
-  const ta = document.getElementById('ta');
-  _snap();
-  // Tách tất cả phần tử ra khỏi DOM trước (giữ nguyên DOM node — không clone)
-  _sortSections.forEach(s => {
-    if (s.headingEl && ta.contains(s.headingEl)) ta.removeChild(s.headingEl);
-    s.contentEls.forEach(el => { if (ta.contains(el)) ta.removeChild(el); });
-  });
-  // Chèn lại theo thứ tự mới
-  _sortSections.forEach(s => {
-    if (s.headingEl) ta.appendChild(s.headingEl);
-    s.contentEls.forEach(el => ta.appendChild(el));
-  });
-  syncHeadingFolds(ta);
-  scheduleAutoSave();
-  closeSortModal();
-  toast('✅ Đã sắp xếp lại cấu trúc văn bản', 'var(--success)');
-}
-
 // ════════════════════ INIT ════════════════════
 const _saved=loadFromLS();
 if(_saved&&_saved.folders&&_saved.folders.length){
@@ -4013,24 +3753,7 @@ if(_saved&&_saved.folders&&_saved.folders.length){
   <div class="emoji-cats" id="emojiCats"></div>
   <div class="emoji-grid" id="emojiGrid"></div>
 </div>
-<!-- Sort Sections Modal -->
-<div id="sortModal" onclick="if(event.target===this)closeSortModal()">
-  <div class="sort-box">
-    <div class="sort-hdr">
-      <h3>⠿ Sắp xếp cấu trúc văn bản</h3>
-      <button class="sort-close" onclick="closeSortModal()">✕</button>
-    </div>
-    <div class="sort-hint">
-      Kéo thả các khối để thay đổi thứ tự. Mỗi khối gồm một tiêu đề (H1/H2/H3) cùng toàn bộ nội dung bên dưới đến tiêu đề kế tiếp.
-    </div>
-    <div class="sort-list" id="sortList"></div>
-    <div class="sort-footer">
-      <button class="sort-btn-cancel" onclick="closeSortModal()">Huỷ</button>
-      <button class="sort-btn-apply" onclick="applySortOrder()">✅ Áp dụng thứ tự mới</button>
-    </div>
-  </div>
-</div>
-
+<!-- SHORTCUTS MODAL -->
 <div id="scModal" onclick="if(event.target===this)closeScModal()">
   <div class="sc-box">
     <div class="sc-hdr">

@@ -473,10 +473,18 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   font-size:.95em;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
 }
 .link-btn-chip .lbc-ico img{display:block}
+/* Icon mặc định khi không có favicon/ảnh riêng — vòng tròn mờ bọc icon chuỗi link */
+.link-btn-chip .lbc-ico-default{
+  width:1.3em;height:1.3em;border-radius:50%;
+  background:rgba(255,255,255,.22);
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.link-btn-chip .lbc-ico-default svg{width:.78em;height:.78em;display:block}
 .link-btn-chip.sel{outline:2px dashed var(--text);outline-offset:2px}
 /* Khi chọn màu trong suốt: bỏ shadow, thêm viền nhẹ để nút vẫn nhận biết được trên mọi nền */
 .link-btn-chip.lbc-transparent{box-shadow:none;border-color:var(--border)}
 .link-btn-chip.lbc-transparent:hover{box-shadow:0 3px 10px rgba(0,0,0,.18);border-color:var(--lbc-fg,var(--accent))}
+.link-btn-chip.lbc-transparent .lbc-ico-default{background:rgba(137,180,250,.18)}
 
 /* ── LINK BUTTON MODAL ── */
 #linkBtnModal .tbl-modal{max-width:380px}
@@ -1177,13 +1185,7 @@ function flushContent(){
   const a=f?.articles?.find(x=>x.id===selA);
   if(!a)return;
   const taEl=document.getElementById('ta');
-  // Clone và strip các phần tử UI tạm thời để JSON gọn nhẹ:
-  // - .lbc-ico: icon chip được dựng lại từ data-lbc-* khi load
-  // - .h-toggle: nút toggle heading được tạo lại bởi syncHeadingFolds
-  const clone=taEl.cloneNode(true);
-  clone.querySelectorAll('.link-btn-chip .lbc-ico').forEach(ico=>{ico.innerHTML='';});
-  clone.querySelectorAll('.h-toggle').forEach(el=>el.remove());
-  a.content=clone.innerHTML;
+  a.content=taEl.innerHTML;
   // Lưu thêm style của editor (cỡ chữ mặc định, giãn dòng mặc định, màu nền)
   a.editorStyle={
     fontSize:taEl.style.fontSize||'',
@@ -1570,7 +1572,6 @@ function selArt(fid,aid){
   dynSt.textContent=a.dynParaStyle||'';
   normalizeBlocks();
   syncHeadingFolds(ta);
-  rebuildChipIcons(ta);
   updateWordCount();
   // place cursor at end
   ta.focus();
@@ -2491,22 +2492,33 @@ function lbcPickColor(i){
   lbcUpdatePreview();
 }
 
-// Icon mặc định dùng file img/link.png
+// SVG icon mặc định đẹp (hình mắt xích) — dùng khi không có favicon thật hoặc ảnh riêng
+const LBC_DEFAULT_ICON_SVG=`<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 14.5L14.5 9.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M11 6.5L12.5 5C14.5 3 17.5 3 19 5C20.5 7 20.5 10 18.5 12L17 13.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 17.5L11.5 19C9.5 21 6.5 21 5 19C3.5 17 3.5 14 5.5 12L7 10.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 function lbcDefaultIconHtml(){
-  return `<img src="img/link.png" style="width:1em;height:1em;object-fit:contain;vertical-align:middle;opacity:.85">`;
+  return `<span class="lbc-ico-default">${LBC_DEFAULT_ICON_SVG}</span>`;
 }
-// Img tag favicon với fallback về link.png
-function lbcImgTagHtml(src,sizeStyle){
-  return `<img src="${src}" style="${sizeStyle}" onerror="this.src='img/link.png'">`;
+// Google S2 trả về ảnh globe 16x16 khi domain không có favicon thật (dù ta yêu cầu sz=32).
+// Phát hiện trường hợp này qua naturalWidth rồi tự chuyển sang icon mặc định đẹp hơn.
+function lbcImgTagHtml(src,sizeStyle,fallbackHtmlEscaped){
+  return `<img src="${src}" style="${sizeStyle}" `+
+    `onload="if(this.naturalWidth&&this.naturalWidth<24){this.outerHTML='${fallbackHtmlEscaped}'}" `+
+    `onerror="this.outerHTML='${fallbackHtmlEscaped}'">`;
 }
 
 // Render icon hiện tại (box trong modal + nút preview) theo _lbcIconMode
 function lbcRenderIcon(){
   const src=_lbcIconMode==='custom'?_lbcIconCustom:_lbcIconAuto;
-  const s='width:1.1em;height:1.1em;object-fit:cover;border-radius:3px;vertical-align:middle';
-  document.getElementById('lbcIconBox').innerHTML=src?lbcImgTagHtml(src,'width:100%;height:100%;object-fit:cover'):lbcDefaultIconHtml();
-  document.getElementById('lbcPreviewIco').innerHTML=src?lbcImgTagHtml(src,s):lbcDefaultIconHtml();
-  document.getElementById('lbcIconResetBtn').style.display=_lbcIconMode==='custom'?'flex':'none';
+  const box=document.getElementById('lbcIconBox');
+  const prevIco=document.getElementById('lbcPreviewIco');
+  const resetBtn=document.getElementById('lbcIconResetBtn');
+  const defaultEsc=lbcDefaultIconHtml().replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+  box.innerHTML=src
+    ?lbcImgTagHtml(src,'width:100%;height:100%;object-fit:cover',defaultEsc)
+    :lbcDefaultIconHtml();
+  prevIco.innerHTML=src
+    ?lbcImgTagHtml(src,'width:1.1em;height:1.1em;object-fit:cover;border-radius:3px;vertical-align:middle',defaultEsc)
+    :lbcDefaultIconHtml();
+  resetBtn.style.display=_lbcIconMode==='custom'?'flex':'none';
 }
 
 // Tự lấy favicon mỗi khi URL đích thay đổi (debounce), chỉ áp dụng khi chưa nhập URL icon riêng
@@ -2532,9 +2544,7 @@ function lbcOnIconUrlInput(){
       lbcRenderIcon();
       return;
     }
-    // Relative paths (img/x.png) giữ nguyên; domain (example.com) mới thêm https://
-    const isAbsolute=v.startsWith('http')||v.startsWith('data:')||v.startsWith('/')||v.startsWith('./');
-    _lbcIconCustom=isAbsolute?v:(v.split('/')[0].includes('.')?'https://'+v:v);
+    _lbcIconCustom=v.startsWith('http')||v.startsWith('data:')?v:'https://'+v;
     _lbcIconMode='custom';
     lbcRenderIcon();
   },300);
@@ -2616,21 +2626,10 @@ function deleteLinkBtn(){
 // Tạo innerHTML của nút (icon + tên) dùng chung cho chèn mới và sửa
 function lbcIconHtml(){
   const src=_lbcIconMode==='custom'?_lbcIconCustom:_lbcIconAuto;
-  const s='width:1.1em;height:1.1em;object-fit:cover;border-radius:3px;vertical-align:middle';
-  return src?lbcImgTagHtml(src,s):lbcDefaultIconHtml();
-}
-
-// Dựng lại icon cho tất cả chip trong container từ data-lbc-* (sau khi load bài)
-function rebuildChipIcons(root){
-  const s='width:1.1em;height:1.1em;object-fit:cover;border-radius:3px;vertical-align:middle';
-  root.querySelectorAll('.link-btn-chip').forEach(a=>{
-    const ico=a.querySelector('.lbc-ico');if(!ico)return;
-    const customSrc=a.dataset.lbcIconCustom;
-    const url=a.dataset.lbcUrl||a.href;
-    if(customSrc)ico.innerHTML=lbcImgTagHtml(customSrc,s);
-    else if(url){const fav=faviconUrl(url);ico.innerHTML=fav?lbcImgTagHtml(fav,s):lbcDefaultIconHtml();}
-    else ico.innerHTML=lbcDefaultIconHtml();
-  });
+  const defaultEsc=lbcDefaultIconHtml().replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+  return src
+    ?lbcImgTagHtml(src,'width:1.1em;height:1.1em;object-fit:cover;border-radius:3px;vertical-align:middle',defaultEsc)
+    :lbcDefaultIconHtml();
 }
 
 function insertLinkBtn(){

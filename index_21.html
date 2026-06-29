@@ -2532,9 +2532,7 @@ function lbcOnIconUrlInput(){
       lbcRenderIcon();
       return;
     }
-    // Relative paths (img/x.png) giữ nguyên; domain (example.com) mới thêm https://
-    const isAbsolute=v.startsWith('http')||v.startsWith('data:')||v.startsWith('/')||v.startsWith('./');
-    _lbcIconCustom=isAbsolute?v:(v.split('/')[0].includes('.')?'https://'+v:v);
+    _lbcIconCustom=v.startsWith('http')||v.startsWith('data:')?v:'https://'+v;
     _lbcIconMode='custom';
     lbcRenderIcon();
   },300);
